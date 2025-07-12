@@ -19,6 +19,9 @@ gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
+# Vector similarity search
+gem "neighbor"
+
 # For code organization and business logic
 gem "packwerk", require: false
 gem "gl_command"
