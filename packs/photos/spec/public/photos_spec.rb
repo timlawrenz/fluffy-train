@@ -62,4 +62,18 @@ RSpec.describe Photos do
       end
     end
   end
+
+  describe '.bulk_import' do
+    around do |example|
+      Dir.mktmpdir do |dir|
+        @tmpdir = dir
+        example.run
+      end
+    end
+
+    it 'calls the BulkImportPhotos command' do
+      expect(BulkImportPhotos).to receive(:call).with(folder: @tmpdir, persona: persona)
+      described_class.bulk_import(folder: @tmpdir, persona: persona)
+    end
+  end
 end

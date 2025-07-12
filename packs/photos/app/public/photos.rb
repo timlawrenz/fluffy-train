@@ -18,4 +18,13 @@ module Photos
   def self.create(path:, persona:)
     CreatePhoto.call(path: path, persona: persona)
   end
+
+  # Bulk imports photos from a folder for a specific persona.
+  #
+  # @param folder [String] the path to the folder.
+  # @param persona [Persona] the persona these photos belong to.
+  # @return [GLCommand::Context] the result of the BulkImportPhotos command.
+  def self.bulk_import(folder:, persona:)
+    BulkImportPhotos.call(folder: folder, persona: persona)
+  end
 end

@@ -3,5 +3,5 @@
 class Photo < ApplicationRecord
   belongs_to :persona
 
-  validates :path, presence: true
+  validates :path, presence: true, uniqueness: true
 end
