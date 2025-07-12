@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Photo < ApplicationRecord
-  has_neighbors :embedding, dimensions: 512
+  has_neighbors :embedding
 
   belongs_to :persona
 
