@@ -10,7 +10,7 @@ class BulkImportPhotos < GLCommand::Callable
       return
     end
 
-    all_file_paths = Dir.glob(File.join(folder, '**', '*')).select { |f| File.file?(f) }
+    all_file_paths = Dir.glob(File.join(folder, '**', '*.{jpg,png}'), File::FNM_CASEFOLD)
 
     if all_file_paths.empty?
       context.imported_count = 0

@@ -26,6 +26,7 @@ RSpec.describe BulkImportPhotos, type: :command do
         FileUtils.touch(File.join(@tmpdir, 'photo1.jpg'))
         FileUtils.mkdir_p(File.join(@tmpdir, 'subdir'))
         FileUtils.touch(File.join(@tmpdir, 'subdir', 'photo2.png'))
+        FileUtils.touch(File.join(@tmpdir, 'notes.txt'))
       end
 
       it 'creates new photo records for all files' do
