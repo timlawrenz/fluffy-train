@@ -17,26 +17,12 @@ class BulkImportPhotos < GLCommand::Callable
       return
     end
 
-    existing_paths = Photo.where(path: all_file_paths).pluck(:path)
-    new_paths = all_file_paths - existing_paths
+    initial_count = Photo.count
 
-    if new_paths.empty?
-      context.imported_count = 0
-      return
+    all_file_paths.each do |path|
+      CreatePhoto.call!(path: path, persona: persona)
     end
 
-    photos_to_insert = new_paths.map do |path|
-      {
-        persona_id: persona.id,
-        path: path,
-        created_at: Time.current,
-        updated_at: Time.current
-      }
-    end
-
-    result = Photo.insert_all(photos_to_insert)
-    context.imported_count = result.count
-  rescue StandardError => e
-    stop_and_fail!(e.message)
+    context.imported_count = Photo.count - initial_count
   end
 end
