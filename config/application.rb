@@ -20,7 +20,7 @@ module FluffyTrain
     config.paths.add 'packs', glob: '*/app/*', eager_load: true
 
     # Add pack rake tasks to load path
-    config.paths['lib/tasks'].concat(Dir[Rails.root.join('packs', '*/lib/tasks')])
+    config.paths['lib/tasks'] += Dir[Rails.root.join('packs', '*/lib/tasks')]
 
     # Configuration for the application, engines, and railties goes here.
     #
