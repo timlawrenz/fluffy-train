@@ -22,6 +22,10 @@ gem "jbuilder"
 # Vector similarity search
 gem "neighbor"
 
+# For making HTTP requests
+gem "faraday", "~> 2.7"
+gem "faraday-multipart"
+
 # For code organization and business logic
 gem "packwerk", require: false
 gem "gl_command"
@@ -57,6 +61,7 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "n_plus_one_control"
+  gem "webmock"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false

@@ -102,4 +102,13 @@ RSpec.describe Photos do
       described_class.bulk_import(folder: @tmpdir, persona: persona)
     end
   end
+
+  describe '.generate_embedding' do
+    let(:photo) { FactoryBot.create(:photo) }
+
+    it 'calls the GenerateEmbedding command' do
+      expect(GenerateEmbedding).to receive(:call).with(photo: photo)
+      described_class.generate_embedding(photo: photo)
+    end
+  end
 end

@@ -27,4 +27,12 @@ module Photos
   def self.bulk_import(folder:, persona:)
     BulkImportPhotos.call(folder: folder, persona: persona)
   end
+
+  # Generates and saves an embedding for a photo.
+  #
+  # @param photo [Photo] the photo to process.
+  # @return [GLCommand::Context] the result of the GenerateEmbedding command.
+  def self.generate_embedding(photo:)
+    GenerateEmbedding.call(photo: photo)
+  end
 end

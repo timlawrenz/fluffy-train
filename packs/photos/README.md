@@ -85,3 +85,30 @@ else
   puts "Failed to import photos: #{result.full_error_message}"
 end
 ```
+
+### `Photos.generate_embedding(photo:)`
+
+Generates and saves a vector embedding for a given photo by calling an external `image_embed` service. The operation is idempotent; if an embedding already exists for the photo, it will not be regenerated.
+
+**Parameters:**
+
+*   `photo` (`Photo`): The photo object to generate an embedding for.
+
+**Returns:**
+
+A `GLCommand::Context` object.
+
+*   On success, `context.photo` will contain the `Photo` record, now with its `embedding` attribute populated.
+*   On failure (e.g., the photo file is not found, or the external service is unavailable), the context will be a failure, and `context.full_error_message` will describe the error.
+
+**Example:**
+
+```ruby
+photo = Photos.find(1)
+result = Photos.generate_embedding(photo: photo)
+if result.success?
+  puts "Embedding generated for #{result.photo.path}"
+else
+  puts "Failed to generate embedding: #{result.full_error_message}"
+end
+```
