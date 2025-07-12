@@ -1,24 +1,20 @@
 # frozen_string_literal: true
 
-class CreatePersona
-  include GLCommand::Base
-
-  def initialize(name:)
-    @name = name
-    @persona = Persona.new(name: @name)
-  end
+class CreatePersona < GLCommand::Callable
+  requires :name
+  returns :persona
 
   def call
+    @persona = Persona.new(name: name)
+
     if @persona.save
-      success!(@persona)
+      context.persona = @persona
     else
-      failure!(@persona.errors)
+      stop_and_fail!(@persona.errors.full_messages.to_sentence, no_notify: true)
     end
   end
 
   def rollback
-    return unless success? && result&.persisted?
-
-    result.destroy
+    @persona&.destroy
   end
 end
