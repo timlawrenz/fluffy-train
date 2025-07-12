@@ -7,17 +7,17 @@ RSpec.describe GenerateEmbedding, type: :command do
   let(:photo) { FactoryBot.create(:photo) }
   let(:embedding_vector) { [0.1] * 512 }
 
-  before do
-    allow(File).to receive(:exist?).and_call_original
-    allow(File).to receive(:exist?).with(photo.path).and_return(true)
-  end
-
   describe 'interface' do
     it { is_expected.to require(:photo).being(Photo) }
     it { is_expected.to returns(:photo) }
   end
 
   describe '#call' do
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(photo.path).and_return(true)
+    end
+
     context 'when photo does not have an embedding' do
       before do
         photo.update_column(:embedding, nil)
