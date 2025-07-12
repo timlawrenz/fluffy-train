@@ -36,7 +36,7 @@ class ImageEmbedClient
   def generate_embedding
     response = connection.post('/analyze_image_upload/') do |req|
       req.body = {
-        image_file: Faraday::Multipart::FilePart.new(@file_path.to_s, 'image/jpeg'),
+        image_file: Faraday::Multipart::FilePart.new(@file_path, 'image/jpeg'),
         tasks_json: tasks_payload
       }
     end

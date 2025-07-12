@@ -1,11 +1,18 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'gl_command/rspec'
 
 RSpec.describe GenerateEmbedding, type: :command do
-  let(:photo) { FactoryBot.create(:photo) }
+  let(:temp_file_path) { Rails.root.join('spec/fixtures/files/temp_test_image.jpg') }
+  let(:photo) { FactoryBot.create(:photo, path: temp_file_path) }
   let(:embedding_vector) { [0.1] * 512 }
+
+  around do |example|
+    FileUtils.mkdir_p(File.dirname(temp_file_path))
+    FileUtils.touch(temp_file_path)
+    example.run
+    FileUtils.rm_f(temp_file_path)
+  end
 
   describe 'interface' do
     it { is_expected.to require(:photo).being(Photo) }
@@ -13,11 +20,6 @@ RSpec.describe GenerateEmbedding, type: :command do
   end
 
   describe '#call' do
-    before do
-      allow(File).to receive(:exist?).and_call_original
-      allow(File).to receive(:exist?).with(photo.path).and_return(true)
-    end
-
     context 'when photo does not have an embedding' do
       before do
         photo.update_column(:embedding, nil)
@@ -61,22 +63,24 @@ RSpec.describe GenerateEmbedding, type: :command do
     end
 
     context 'when image file does not exist' do
-      before do
-        allow(File).to receive(:exist?).with(photo.path).and_return(false)
-      end
-
       it 'is a failure' do
-        result = described_class.call(photo: photo)
+        non_existent_photo = FactoryBot.create(:photo, path: '/path/to/non_existent_file.jpg')
+        result = described_class.call(photo: non_existent_photo)
         expect(result).to be_failure
       end
 
       it 'returns an error message' do
-        result = described_class.call(photo: photo)
-        expect(result.full_error_message).to eq("Photo file not found at path: #{photo.path}")
+        non_existent_photo = FactoryBot.create(:photo, path: '/path/to/non_existent_file.jpg')
+        result = described_class.call(photo: non_existent_photo)
+        expect(result.full_error_message).to eq("Photo file not found at path: #{non_existent_photo.path}")
       end
     end
 
     context 'when ImageEmbedClient raises an error' do
+        result = described_class.call(photo: photo)
+        expect(result).to be_failure
+      end
+
       before do
         allow(ImageEmbedClient).to receive(:generate_embedding).and_raise(ImageEmbedClient::Error.new('API timeout'))
       end

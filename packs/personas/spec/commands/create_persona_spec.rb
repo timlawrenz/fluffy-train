@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'gl_command/rspec'
 
 RSpec.describe CreatePersona, type: :command do
   describe 'interface' do
