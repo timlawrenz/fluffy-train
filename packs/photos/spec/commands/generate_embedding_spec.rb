@@ -81,9 +81,6 @@ RSpec.describe GenerateEmbedding, type: :command do
         allow(ImageEmbedClient).to receive(:generate_embedding).and_raise(ImageEmbedClient::Error.new('API timeout'))
       end
 
-      result = described_class.call(photo: photo)
-      expect(result).to be_failure
-
       it 'is a failure' do
         result = described_class.call(photo: photo)
         expect(result).to be_failure
