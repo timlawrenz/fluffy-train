@@ -27,6 +27,32 @@ RSpec.describe Photos do
       end
     end
 
+    context 'when photo already exists' do
+      let!(:existing_photo) { FactoryBot.create(:photo) }
+      let(:new_persona) { FactoryBot.create(:persona) }
+
+      it 'returns a successful context' do
+        result = described_class.create(path: existing_photo.path, persona: new_persona)
+        expect(result).to be_success
+      end
+
+      it 'does not create a new photo record' do
+        expect { described_class.create(path: existing_photo.path, persona: new_persona) }
+          .not_to change(Photo, :count)
+      end
+
+      it 'returns the existing photo' do
+        result = described_class.create(path: existing_photo.path, persona: new_persona)
+        expect(result.photo).to eq(existing_photo)
+      end
+
+      it 'does not change the persona of the existing photo' do
+        result = described_class.create(path: existing_photo.path, persona: new_persona)
+        expect(result.photo.persona).not_to eq(new_persona)
+        expect(result.photo.persona).to eq(existing_photo.persona)
+      end
+    end
+
     context 'with invalid data' do
       let(:path) { nil }
 

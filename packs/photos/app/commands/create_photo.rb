@@ -5,9 +5,15 @@ class CreatePhoto < GLCommand::Callable
   returns :photo
 
   def call
-    @photo = Photo.new(path: path, persona: persona)
+    @photo = Photo.find_or_initialize_by(path: path)
+    @created_in_command = @photo.new_record?
 
-    if @photo.save
+    if @created_in_command
+      @photo.persona = persona
+      @photo.save
+    end
+
+    if @photo.persisted?
       context.photo = @photo
     else
       stop_and_fail!(@photo.errors.full_messages.to_sentence, no_notify: true)
@@ -15,6 +21,6 @@ class CreatePhoto < GLCommand::Callable
   end
 
   def rollback
-    @photo&.destroy
+    @photo&.destroy if @created_in_command
   end
 end
