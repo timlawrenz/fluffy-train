@@ -20,11 +20,7 @@
 *   **Multi-Phase Column Addition:** Follow the safe multi-phase deployment process (Add Col -> Write Code -> Backfill Task -> Add Constraint -> Read Code -> Drop Old Col) when adding/replacing columns.
 *   **For UI elements, utilize reusable ViewComponents located in `app/components`. Refer to the ViewComponent documentation (https://viewcomponent.org/) for best practices.**
 *   **Organize code into domain-specific packs using Packwerk (https://github.com/Shopify/packwerk). New logic should ideally be encapsulated within a new or existing pack located in the `packs/` subfolder. Define clear pack boundaries and dependencies.**
-
-# Conventions for Photo Model
-- We already have an image fixture in spec/fictures/example.jpg. Use this fixture in tests that require an image.
-- Be aware that the Photo model has a method ensure_attachment. It will automatically block a photo if it does not have an attachment.
-- To properly stub a Photo model in tests, use the following pattern: `allow(photo).to receive(:ensure_attachment).and_return(true)`.
+    **Use facade patterns in packs:** review the `packs/personas/app/public/personas.rb` file for an example of how to use the facade pattern in packs.
 
 # Tool calling
 - shell commands that need to be run in the terminal need to be prefixed with `rvm use && ` like this:
