@@ -3,6 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Photos do
+  include ActiveJob::TestHelper
   let!(:persona) { FactoryBot.create(:persona) }
 
   describe '.create' do
@@ -24,6 +25,11 @@ RSpec.describe Photos do
       it 'creates a new photo record' do
         expect { described_class.create(path: path, persona: persona) }
           .to change(Photo, :count).by(1)
+      end
+
+      it 'enqueues a GenerateEmbeddingJob' do
+        expect { described_class.create(path: path, persona: persona) }
+          .to have_enqueued_job(GenerateEmbeddingJob)
       end
     end
 
@@ -50,6 +56,11 @@ RSpec.describe Photos do
         result = described_class.create(path: existing_photo.path, persona: new_persona)
         expect(result.photo.persona).not_to eq(new_persona)
         expect(result.photo.persona).to eq(existing_photo.persona)
+      end
+
+      it 'does not enqueue a GenerateEmbeddingJob' do
+        expect { described_class.create(path: existing_photo.path, persona: new_persona) }
+          .not_to have_enqueued_job(GenerateEmbeddingJob)
       end
     end
 

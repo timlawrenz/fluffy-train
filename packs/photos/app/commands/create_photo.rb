@@ -10,7 +10,9 @@ class CreatePhoto < GLCommand::Callable
 
     if @created_in_command
       @photo.persona = persona
-      @photo.save
+      if @photo.save
+        GenerateEmbeddingJob.perform_later(@photo.id)
+      end
     end
 
     if @photo.persisted?
