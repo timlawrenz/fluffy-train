@@ -1,0 +1,38 @@
+# You can use this file to configure your SolidQueue queues and other settings.
+#
+# SolidQueue is configured using a RAILS_ENV-keyed structure, like this:
+#
+# production:
+#   queues:
+#     default:
+#       dispatch_limit: 1000
+#       concurrency_limit: 5
+#     real_time:
+#       dispatch_limit: 5000
+#       concurrency_limit: 10
+#   workers:
+#     - queues: [ real_time, default ]
+#       threads: 3
+#       processes: 1
+#       polling_interval: 0.1
+#
+# workers:
+#   - queues: "*"
+#     threads: 5
+#     polling_interval: 0.1
+#
+# See https://github.com/basecamp/solid_queue#configuration for a full list of configuration options.
+
+default: &default
+  dispatch_limit: 1000
+  concurrency_limit: 5
+  polling_interval: 1
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

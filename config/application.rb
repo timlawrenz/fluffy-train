@@ -19,6 +19,9 @@ module FluffyTrain
     # Add packs to the load path
     config.paths.add 'packs', glob: '*/app/*', eager_load: true
 
+    # Set Solid Queue as the Active Job adapter
+    config.active_job.queue_adapter = :solid_queue
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
