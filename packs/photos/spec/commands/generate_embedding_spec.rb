@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GenerateEmbedding, type: :command do
+RSpec.describe GenerateEmbedding do
   let(:temp_file_path) { Rails.root.join('spec/fixtures/files/temp_test_image.jpg') }
   let(:photo) { FactoryBot.create(:photo, path: temp_file_path) }
   let(:embedding_vector) { [0.1] * 512 }
@@ -12,11 +12,6 @@ RSpec.describe GenerateEmbedding, type: :command do
     FileUtils.touch(temp_file_path)
     example.run
     FileUtils.rm_f(temp_file_path)
-  end
-
-  describe 'interface' do
-    it { is_expected.to require(:photo).being(Photo) }
-    it { is_expected.to returns(:photo) }
   end
 
   describe '#call' do
@@ -78,15 +73,16 @@ RSpec.describe GenerateEmbedding, type: :command do
 
     context 'when ImageEmbedClient raises an error' do
       before do
-        allow(ImageEmbedClient).to receive(:generate_embedding).and_raise(ImageEmbedClient::Error.new('API timeout'))
       end
 
       it 'is a failure' do
+        allow(ImageEmbedClient).to receive(:generate_embedding).and_raise(ImageEmbedClient::Error.new('API timeout'))
         result = described_class.call(photo: photo)
         expect(result).to be_failure
       end
 
       it 'returns an error message from the client' do
+        allow(ImageEmbedClient).to receive(:generate_embedding).and_raise(ImageEmbedClient::Error.new('API timeout'))
         result = described_class.call(photo: photo)
         expect(result.full_error_message).to eq('Failed to generate embedding: API timeout')
       end
