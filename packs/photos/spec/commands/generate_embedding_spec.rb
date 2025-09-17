@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe GenerateEmbedding do
   let(:temp_file_path) { Rails.root.join('spec/fixtures/files/temp_test_image.jpg') }
-  let(:photo) { FactoryBot.create(:photo, path: temp_file_path) }
+  let(:photo) { create(:photo, path: temp_file_path) }
   let(:embedding_vector) { [0.1] * 512 }
 
   around do |example|
@@ -59,22 +59,19 @@ RSpec.describe GenerateEmbedding do
 
     context 'when image file does not exist' do
       it 'is a failure' do
-        non_existent_photo = FactoryBot.create(:photo, path: '/path/to/non_existent_file.jpg')
+        non_existent_photo = create(:photo, path: '/path/to/non_existent_file.jpg')
         result = described_class.call(photo: non_existent_photo)
         expect(result).to be_failure
       end
 
       it 'returns an error message' do
-        non_existent_photo = FactoryBot.create(:photo, path: '/path/to/non_existent_file.jpg')
+        non_existent_photo = create(:photo, path: '/path/to/non_existent_file.jpg')
         result = described_class.call(photo: non_existent_photo)
         expect(result.full_error_message).to eq("Photo file not found at path: #{non_existent_photo.path}")
       end
     end
 
     context 'when ImageEmbedClient raises an error' do
-      before do
-      end
-
       it 'is a failure' do
         allow(ImageEmbedClient).to receive(:generate_embedding).and_raise(ImageEmbedClient::Error.new('API timeout'))
         result = described_class.call(photo: photo)

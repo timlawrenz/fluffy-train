@@ -26,7 +26,8 @@ RSpec.describe Personas do
 
     context 'with invalid data' do
       let(:name) { 'Lois Lane' }
-      before { FactoryBot.create(:persona, name: name) }
+
+      before { create(:persona, name: name) }
 
       it 'returns a failure context' do
         result = described_class.create(name: name)
@@ -46,7 +47,7 @@ RSpec.describe Personas do
   end
 
   describe '.find' do
-    let!(:persona) { FactoryBot.create(:persona) }
+    let!(:persona) { create(:persona) }
 
     context 'when persona exists' do
       it 'returns the persona' do

@@ -58,17 +58,13 @@ class ImageEmbedClient
   end
 
   def handle_response(response)
-    unless response.success?
-      raise Error, "API Error: #{response.status} - #{response.body}"
-    end
+    raise Error, "API Error: #{response.status} - #{response.body}" unless response.success?
 
     body = JSON.parse(response.body)
     result = body.dig('results', 'whole_image_embedding')
 
-    if result['status'] == 'success'
-      result['data']
-    else
-      raise Error, "Embedding generation failed: #{result['error_message']}"
-    end
+    raise Error, "Embedding generation failed: #{result['error_message']}" unless result['status'] == 'success'
+
+    result['data']
   end
 end

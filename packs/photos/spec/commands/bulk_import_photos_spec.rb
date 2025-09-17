@@ -5,7 +5,7 @@ require 'fileutils'
 require 'gl_command/rspec'
 
 RSpec.describe BulkImportPhotos, type: :command do
-  let!(:persona) { FactoryBot.create(:persona) }
+  let!(:persona) { create(:persona) }
 
   describe 'interface' do
     it { is_expected.to require(:folder) }
