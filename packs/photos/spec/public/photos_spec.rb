@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Photos do
   include ActiveJob::TestHelper
 
-  let!(:persona) { create(:persona) }
+  let!(:persona) { FactoryBot.create(:persona) }
 
   describe '.create' do
     context 'with valid data' do
@@ -35,8 +35,8 @@ RSpec.describe Photos do
     end
 
     context 'when photo already exists' do
-      let!(:existing_photo) { create(:photo) }
-      let(:new_persona) { create(:persona) }
+      let!(:existing_photo) { FactoryBot.create(:photo) }
+      let(:new_persona) { FactoryBot.create(:persona) }
 
       it 'returns a successful context' do
         result = described_class.create(path: existing_photo.path, persona: new_persona)
@@ -86,7 +86,7 @@ RSpec.describe Photos do
   end
 
   describe '.find' do
-    let!(:photo) { create(:photo, persona: persona) }
+    let!(:photo) { FactoryBot.create(:photo, persona: persona) }
 
     context 'when photo exists' do
       it 'returns the photo' do
@@ -116,7 +116,7 @@ RSpec.describe Photos do
   end
 
   describe '.generate_embedding' do
-    let(:photo) { create(:photo) }
+    let(:photo) { FactoryBot.create(:photo) }
 
     it 'calls the GenerateEmbedding command' do
       expect(GenerateEmbedding).to receive(:call).with(photo: photo)

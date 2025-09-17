@@ -31,7 +31,7 @@ RSpec.describe CreatePersona, type: :command do
 
     context 'with an invalid name' do
       before do
-        create(:persona, name: 'Daffy Duck')
+        FactoryBot.create(:persona, name: 'Daffy Duck')
       end
 
       let(:name) { 'Daffy Duck' }

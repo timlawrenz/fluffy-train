@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe GenerateEmbeddingJob, type: :job do
   include ActiveJob::TestHelper
 
-  let(:photo) { create(:photo) }
+  let(:photo) { FactoryBot.create(:photo) }
 
   it 'calls Photos.generate_embedding' do
     expect(Photos).to receive(:generate_embedding).with(photo: photo)
