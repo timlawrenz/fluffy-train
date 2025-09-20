@@ -51,6 +51,16 @@ RSpec.describe BulkImportPhotos, type: :command do
         result = described_class.call(persona: persona, folder: @tmpdir)
         expect(result.imported_count).to eq(0)
       end
+
+      it 'attaches image files using ActiveStorage' do
+        result = described_class.call(persona: persona, folder: @tmpdir)
+        photos = Photo.last(2)
+        
+        photos.each do |photo|
+          expect(photo.image.attached?).to be true
+          expect(['photo1.jpg', 'photo2.png']).to include(photo.image.filename.to_s)
+        end
+      end
     end
 
     context 'with an empty folder' do

@@ -8,16 +8,34 @@ class CreatePhoto < GLCommand::Callable
     @photo = Photo.find_or_initialize_by(path: path)
     @created_in_command = @photo.new_record?
 
-    if @created_in_command
-      @photo.persona = persona
-      GenerateEmbeddingJob.perform_later(@photo.id) if @photo.save
-    end
+    create_new_photo if @created_in_command
 
     if @photo.persisted?
       context.photo = @photo
     else
       stop_and_fail!(@photo.errors.full_messages.to_sentence, no_notify: true)
     end
+  end
+
+  private
+
+  def create_new_photo
+    @photo.persona = persona
+
+    return unless @photo.save
+
+    # Attach the image file using ActiveStorage if the photo saves successfully
+    attach_image_file
+    GenerateEmbeddingJob.perform_later(@photo.id)
+  end
+
+  def attach_image_file
+    return unless File.exist?(path)
+
+    @photo.image.attach(
+      io: File.open(path),
+      filename: File.basename(path)
+    )
   end
 
   def rollback
