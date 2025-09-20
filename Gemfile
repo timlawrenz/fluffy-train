@@ -22,6 +22,7 @@ gem 'faraday-multipart'
 
 gem 'gl_command'
 gem 'packs-rails'
+gem 'state_machines-activerecord'
 
 gem 'bcrypt', '~> 3.1.7'
 
