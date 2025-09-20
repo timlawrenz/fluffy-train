@@ -85,10 +85,14 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Run setup
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: "postgres://postgres:password@localhost:5432/fluffy-train_test"
+        run: bin/rails db:setup
+
       - name: Run tests
         env:
           RAILS_ENV: test
           DATABASE_URL: "postgres://postgres:password@localhost:5432/fluffy-train_test"
-        run: |
-          bundle exec rails db:setup
-          bundle exec rspec
+        run: bin/rspec
