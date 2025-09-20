@@ -4,7 +4,7 @@
 module Personas
   # Lists all Personas.
   #
-  # @return [Array<Persona>] a list of all personas.
+  # @return [Array<Personas::Persona>] a list of all personas.
   def self.list
     Persona.all.to_a
   end
@@ -12,7 +12,7 @@ module Personas
   # Finds a Persona by their name.
   #
   # @param name [String] the name of the Persona to find.
-  # @return [Persona, nil] the found Persona, or nil if not found.
+  # @return [Personas::Persona, nil] the found Persona, or nil if not found.
   def self.find_by_name(name:)
     Persona.find_by(name: name)
   end
@@ -28,7 +28,7 @@ module Personas
   # Finds a Persona by their ID.
   #
   # @param id [Integer] the ID of the Persona to find.
-  # @return [Persona, nil] the found Persona, or nil if not found.
+  # @return [Personas::Persona, nil] the found Persona, or nil if not found.
   def self.find(id)
     Persona.find_by(id: id)
   end
