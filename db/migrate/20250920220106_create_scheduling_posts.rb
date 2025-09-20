@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateSchedulingPosts < ActiveRecord::Migration[8.0]
   def change
     create_table :scheduling_posts do |t|
@@ -12,6 +14,6 @@ class CreateSchedulingPosts < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :scheduling_posts, [:photo_id, :persona_id], unique: true, name: 'index_posts_on_photo_id_and_persona_id'
+    add_index :scheduling_posts, %i[photo_id persona_id], unique: true, name: 'index_posts_on_photo_id_and_persona_id'
   end
 end

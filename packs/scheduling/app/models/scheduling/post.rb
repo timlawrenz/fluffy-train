@@ -9,7 +9,7 @@ module Scheduling
 
     state_machine :status, initial: :draft do
       state :draft
-      state :scheduled  
+      state :scheduled
       state :posted
       state :failed
 
