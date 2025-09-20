@@ -22,10 +22,12 @@ module Scheduling
   # @param persona [Personas::Persona] the persona to schedule for
   # @param caption [String] the caption for the post
   # @return [GLCommand::Context] the result of the command chain
-  def self.schedule_post(photo:, persona:, caption:) # rubocop:disable Lint/UnusedMethodArgument
-    # TODO: This will be implemented once Scheduling::Chain::SchedulePost exists
-    # For now, create a simple failed result using a stub command
-    StubSchedulePostCommand.call
+  def self.schedule_post(photo:, persona:, caption:)
+    Scheduling::Chain::SchedulePost.call(
+      photo: photo,
+      persona: persona,
+      caption: caption
+    )
   end
 
   # Connects to the Buffer API to get the status for recent posts for a given
@@ -41,13 +43,6 @@ module Scheduling
 
   # Temporary stub commands to return proper GLCommand::Context objects
   # These will be removed once the real command chain is implemented
-  class StubSchedulePostCommand < GLCommand::Callable
-    def call
-      context.errors.add(:base, 'Scheduling::Chain::SchedulePost command chain not yet implemented')
-      stop_and_fail!('Command chain not implemented')
-    end
-  end
-
   class StubSyncPostStatusesCommand < GLCommand::Callable
     returns :updated_posts
 
