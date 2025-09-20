@@ -79,6 +79,5 @@ group :test do
   gem 'selenium-webdriver'
   gem 'shoulda-matchers'
   gem 'simplecov', require: false
-  gem 'sqlite3', '~> 2.1'
   gem 'webmock'
 end
