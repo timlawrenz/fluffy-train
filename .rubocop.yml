@@ -39,6 +39,9 @@ Metrics/BlockLength:
 Rails/StrongParametersExpect:
   Enabled: false
 
+RSpec/PendingWithoutReason:
+  Exclude:
+    - 'spec/integration/**/*'
 RSpec/DescribeClass:
   Exclude:
     - 'spec/integration/**/*'
