@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 namespace :photos do
-  desc "Bulk import photos from a folder for a given persona. Usage: rails \"photos:bulk_import[<persona_name>,<folder_path>]\""
-  task :bulk_import, [:persona_name, :folder_path] => :environment do |_, args|
+  desc 'Bulk import photos from a folder for a given persona. Usage: rails "photos:bulk_import[<persona_name>,<folder_path>]"'
+  task :bulk_import, %i[persona_name folder_path] => :environment do |_, args|
     if args[:persona_name].blank?
-      puts "Error: Persona name must be provided."
-      puts "Usage: rails \"photos:bulk_import[<persona_name>,<folder_path>]\""
+      puts 'Error: Persona name must be provided.'
+      puts 'Usage: rails "photos:bulk_import[<persona_name>,<folder_path>]"'
       exit 1
     end
 
     if args[:folder_path].blank?
-      puts "Error: Folder path must be provided."
-      puts "Usage: rails \"photos:bulk_import[<persona_name>,<folder_path>]\""
+      puts 'Error: Folder path must be provided.'
+      puts 'Usage: rails "photos:bulk_import[<persona_name>,<folder_path>]"'
       exit 1
     end
 
