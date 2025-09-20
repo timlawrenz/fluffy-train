@@ -61,4 +61,64 @@ RSpec.describe Personas do
       end
     end
   end
+
+  describe '.list' do
+    context 'when no personas exist' do
+      it 'returns an empty array' do
+        expect(described_class.list).to eq([])
+      end
+
+      it 'returns an Array' do
+        expect(described_class.list).to be_a(Array)
+      end
+    end
+
+    context 'when personas exist' do
+      let!(:bruce_wayne) { FactoryBot.create(:persona, name: 'Bruce Wayne') }
+      let!(:clark_kent) { FactoryBot.create(:persona, name: 'Clark Kent') }
+
+      it 'returns all personas as an array' do
+        result = described_class.list
+        expect(result).to be_a(Array)
+        expect(result).to contain_exactly(bruce_wayne, clark_kent)
+      end
+
+      it 'does not return an ActiveRecord::Relation' do
+        result = described_class.list
+        expect(result).not_to be_a(ActiveRecord::Relation)
+      end
+    end
+  end
+
+  describe '.find_by_name' do
+    let!(:persona) { FactoryBot.create(:persona, name: 'Diana Prince') }
+
+    context 'when persona exists with the given name' do
+      it 'returns the persona' do
+        result = described_class.find_by_name(name: 'Diana Prince')
+        expect(result).to eq(persona)
+      end
+    end
+
+    context 'when no persona exists with the given name' do
+      it 'returns nil' do
+        result = described_class.find_by_name(name: 'Unknown Hero')
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when name is nil' do
+      it 'returns nil' do
+        result = described_class.find_by_name(name: nil)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when name is empty string' do
+      it 'returns nil' do
+        result = described_class.find_by_name(name: '')
+        expect(result).to be_nil
+      end
+    end
+  end
 end
