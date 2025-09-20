@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_20_220001) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_20_220106) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -31,6 +31,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_20_220001) do
     t.vector "embedding", limit: 512
     t.index ["path"], name: "index_photos_on_path", unique: true
     t.index ["persona_id"], name: "index_photos_on_persona_id"
+  end
+
+  create_table "scheduling_posts", force: :cascade do |t|
+    t.bigint "photo_id", null: false
+    t.bigint "persona_id", null: false
+    t.text "caption"
+    t.string "status", default: "draft", null: false
+    t.string "buffer_post_id"
+    t.datetime "scheduled_at"
+    t.datetime "posted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["photo_id", "persona_id"], name: "index_posts_on_photo_id_and_persona_id", unique: true
+    t.index ["persona_id"], name: "index_scheduling_posts_on_persona_id"
+    t.index ["photo_id"], name: "index_scheduling_posts_on_photo_id"
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
@@ -113,6 +128,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_20_220001) do
   end
 
   add_foreign_key "photos", "personas"
+  add_foreign_key "scheduling_posts", "personas"
+  add_foreign_key "scheduling_posts", "photos"
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
