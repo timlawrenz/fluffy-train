@@ -24,11 +24,8 @@ module Scheduling
   # @return [GLCommand::Context] the result of the command chain
   def self.schedule_post(photo:, persona:, caption:) # rubocop:disable Lint/UnusedMethodArgument
     # TODO: This will be implemented once Scheduling::Chain::SchedulePost exists
-    # For now, return a failed context with appropriate error message
-    context = GLCommand::Context.new
-    context.errors.add(:base, 'Scheduling::Chain::SchedulePost command chain not yet implemented')
-    context.fail!
-    context
+    # For now, create a simple failed result using a stub command
+    StubSchedulePostCommand.call
   end
 
   # Connects to the Buffer API to get the status for recent posts for a given
@@ -38,9 +35,24 @@ module Scheduling
   # @return [GLCommand::Context] the result with updated posts
   def self.sync_post_statuses(persona:) # rubocop:disable Lint/UnusedMethodArgument
     # TODO: This will be implemented once Buffer::Client and sync commands exist
-    # For now, return a successful context with empty updated_posts array
-    context = GLCommand::Context.new
-    context.updated_posts = []
-    context
+    # For now, create a simple successful result using a stub command
+    StubSyncPostStatusesCommand.call
+  end
+
+  # Temporary stub commands to return proper GLCommand::Context objects
+  # These will be removed once the real command chain is implemented
+  class StubSchedulePostCommand < GLCommand::Callable
+    def call
+      context.errors.add(:base, 'Scheduling::Chain::SchedulePost command chain not yet implemented')
+      stop_and_fail!('Command chain not implemented')
+    end
+  end
+
+  class StubSyncPostStatusesCommand < GLCommand::Callable
+    returns :updated_posts
+
+    def call
+      context.updated_posts = []
+    end
   end
 end
