@@ -32,10 +32,12 @@ class CreatePhoto < GLCommand::Callable
   def attach_image_file
     return unless File.exist?(path)
 
-    @photo.image.attach(
-      io: File.open(path),
-      filename: File.basename(path)
-    )
+    File.open(path) do |file|
+      @photo.image.attach(
+        io: file,
+        filename: File.basename(path)
+      )
+    end
   end
 
   def rollback
