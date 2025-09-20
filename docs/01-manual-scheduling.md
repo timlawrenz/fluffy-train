@@ -244,3 +244,16 @@ To update the status of posts from `scheduled` to `posted` or `failed`, a pollin
 *   **Client Specs:** Located in `packs/scheduling/spec/clients/`, will use `VCR` or `WebMock` to test the `Buffer::Client` against recorded API interactions.
 *   **Job Specs:** Located in `packs/scheduling/spec/jobs/`, will ensure jobs correctly invoke their target commands.
 *   **Integration Test:** A single, top-level test at `spec/integration/scheduling_workflow_spec.rb` will test the entire `Scheduling.schedule_post` flow, using a mocked `Buffer::Client` to verify the complete chain of operations across pack boundaries.
+
+## 7. Ticket Dependency Tree
+
+*   [[Setup] Configure ActiveStorage with Cloud Provider](https://github.com/timlawrenz/fluffy-train/issues/1)
+    *   [[Backend] Create `packs/scheduling` Pack](https://github.com/timlawrenz/fluffy-train/issues/2)
+        *   [[Database] Add `buffer_profile_id` to `Personas::Persona`](https://github.com/timlawrenz/fluffy-train/issues/4)
+            *   [[Backend] Implement `personas` Pack Public API](https://github.com/timlawrenz/fluffy-train/issues/6)
+                *   [[Backend] Implement `scheduling` Pack Public API](https://github.com/timlawrenz/fluffy-train/issues/9)
+                    *   [[Testing] Write Integration Test for Scheduling Workflow](https://github.com/timlawrenz/fluffy-train/issues/10)
+        *   [[Database] Create `Scheduling::Post` Model and Migration](https://github.com/timlawrenz/fluffy-train/issues/3)
+            *   [[Backend] Implement `Buffer::Client` for API Integration](https://github.com/timlawrenz/fluffy-train/issues/7)
+                *   [[Backend] Implement `Scheduling::Chain::SchedulePost` Command Chain](https://github.com/timlawrenz/fluffy-train/issues/8)
+    *   [[Backend] Update `Photos::Photo` to use ActiveStorage](https://github.com/timlawrenz/fluffy-train/issues/5)
