@@ -15,3 +15,9 @@ For more details on its implementation and public API, see the [Personas Pack RE
 The `photos` pack manages photos associated with different personas. It handles storing photo references and provides functionality for bulk importing.
 
 For more details on its implementation and public API, see the [Photos Pack README](./packs/photos/README.md).
+
+### Scheduling
+
+The `scheduling` pack is responsible for managing scheduling and posting content. It encapsulates all logic related to scheduling, posting, and interacting with third-party social media APIs.
+
+For more details on its implementation and public API, see the [Scheduling Pack README](./packs/scheduling/README.md).
