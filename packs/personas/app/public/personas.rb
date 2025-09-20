@@ -24,4 +24,12 @@ module Personas
   def self.create(name:)
     CreatePersona.call(name: name)
   end
+
+  # Finds a Persona by their ID.
+  #
+  # @param id [Integer] the ID of the Persona to find.
+  # @return [Persona, nil] the found Persona, or nil if not found.
+  def self.find(id)
+    Persona.find_by(id: id)
+  end
 end
