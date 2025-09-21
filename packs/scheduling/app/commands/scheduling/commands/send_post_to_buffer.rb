@@ -3,8 +3,8 @@
 module Scheduling
   module Commands
     class SendPostToBuffer < GLCommand::Callable
-      requires :public_photo_url, :caption, :persona
-      returns :buffer_post_id
+      requires public_photo_url: String, caption: String, persona: Persona
+      returns buffer_post_id: String
 
       def call
         validate_persona!

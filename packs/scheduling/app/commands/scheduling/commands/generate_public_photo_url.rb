@@ -3,8 +3,8 @@
 module Scheduling
   module Commands
     class GeneratePublicPhotoUrl < GLCommand::Callable
-      requires :photo
-      returns :public_photo_url
+      requires photo: Photo
+      returns public_photo_url: String
 
       def call
         # Generate a public URL for the photo's ActiveStorage attachment

@@ -14,10 +14,10 @@ RSpec.describe Scheduling::Commands::CreatePostRecord, type: :command do
   end
 
   describe 'interface' do
-    it { is_expected.to require(:photo) }
-    it { is_expected.to require(:persona) }
-    it { is_expected.to require(:caption) }
-    it { is_expected.to returns(:post) }
+    it { is_expected.to require(:photo).being(Photo) }
+    it { is_expected.to require(:persona).being(Persona) }
+    it { is_expected.to require(:caption).being(String) }
+    it { is_expected.to returns(:post).being(Scheduling::Post) }
   end
 
   describe '#call' do

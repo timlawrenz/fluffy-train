@@ -18,10 +18,10 @@ RSpec.describe Scheduling::Commands::SendPostToBuffer, type: :command do
   end
 
   describe 'interface' do
-    it { is_expected.to require(:public_photo_url) }
-    it { is_expected.to require(:caption) }
-    it { is_expected.to require(:persona) }
-    it { is_expected.to returns(:buffer_post_id) }
+    it { is_expected.to require(:public_photo_url).being(String) }
+    it { is_expected.to require(:caption).being(String) }
+    it { is_expected.to require(:persona).being(Persona) }
+    it { is_expected.to returns(:buffer_post_id).being(String) }
   end
 
   describe '#call' do

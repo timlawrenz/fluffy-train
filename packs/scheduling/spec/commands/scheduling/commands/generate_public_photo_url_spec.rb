@@ -14,8 +14,8 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
   end
 
   describe 'interface' do
-    it { is_expected.to require(:photo) }
-    it { is_expected.to returns(:public_photo_url) }
+    it { is_expected.to require(:photo).being(Photo) }
+    it { is_expected.to returns(:public_photo_url).being(String) }
   end
 
   describe '#call' do

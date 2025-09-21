@@ -23,7 +23,7 @@ module Scheduling
   # @param caption [String] the caption for the post
   # @return [GLCommand::Context] the result of the command chain
   def self.schedule_post(photo:, persona:, caption:)
-    Scheduling::Chain::SchedulePost.call(
+    Scheduling::SchedulePost.call(
       photo: photo,
       persona: persona,
       caption: caption

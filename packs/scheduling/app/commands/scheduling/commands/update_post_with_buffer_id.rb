@@ -3,8 +3,8 @@
 module Scheduling
   module Commands
     class UpdatePostWithBufferId < GLCommand::Callable
-      requires :post, :buffer_post_id
-      returns :post
+      requires post: Scheduling::Post, buffer_post_id: String
+      returns post: Scheduling::Post
 
       def call
         # Store the original state for rollback

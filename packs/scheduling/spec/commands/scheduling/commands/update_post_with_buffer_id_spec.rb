@@ -13,9 +13,9 @@ RSpec.describe Scheduling::Commands::UpdatePostWithBufferId, type: :command do
   end
 
   describe 'interface' do
-    it { is_expected.to require(:post) }
-    it { is_expected.to require(:buffer_post_id) }
-    it { is_expected.to returns(:post) }
+    it { is_expected.to require(:post).being(Scheduling::Post) }
+    it { is_expected.to require(:buffer_post_id).being(String) }
+    it { is_expected.to returns(:post).being(Scheduling::Post) }
   end
 
   describe '#call' do
