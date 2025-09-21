@@ -43,8 +43,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_20_220106) do
     t.datetime "posted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["photo_id", "persona_id"], name: "index_posts_on_photo_id_and_persona_id", unique: true
     t.index ["persona_id"], name: "index_scheduling_posts_on_persona_id"
+    t.index ["photo_id", "persona_id"], name: "index_posts_on_photo_id_and_persona_id", unique: true
     t.index ["photo_id"], name: "index_scheduling_posts_on_photo_id"
   end
 
