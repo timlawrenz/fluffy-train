@@ -8,11 +8,14 @@ require 'gl_command/rspec'
 require 'vips'
 
 # Mock Photo class for testing
-Photo = Class.new
+
 
 require_relative '../../../../app/commands/photos/analyse/sharpness'
 
 RSpec.describe Photos::Analyse::Sharpness, type: :command do
+  before do
+    stub_const('Photo', Class.new)
+  end
   let(:temp_dir) { '/tmp/fluffy_train_test_images' }
   let(:sharp_image_path) { File.join(temp_dir, 'sharp_test_image.jpg') }
   let(:blurry_image_path) { File.join(temp_dir, 'blurry_test_image.jpg') }
