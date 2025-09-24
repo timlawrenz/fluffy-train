@@ -28,7 +28,7 @@ module Photos
     private
 
     def validate_photo
-      return if photo.class.name == 'Photo'
+      return if photo.instance_of?(::Photo)
 
       stop_and_fail!("Invalid photo: expected Photo object, got #{photo.class}")
     end

@@ -31,9 +31,9 @@ module Photos
       end
 
       def validate_aesthetic_score(score)
-        unless score.is_a?(Numeric) && score >= 1.0 && score <= 10.0
-          stop_and_fail!("Invalid aesthetic score: must be a number between 1.0 and 10.0, got #{score}")
-        end
+        return if score.is_a?(Numeric) && score >= 1.0 && score <= 10.0
+
+        stop_and_fail!("Invalid aesthetic score: must be a number between 1.0 and 10.0, got #{score}")
       end
     end
   end

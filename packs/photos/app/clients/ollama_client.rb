@@ -145,7 +145,7 @@ class OllamaClient
     raise Error, "No numeric score found in response: #{response_text}" unless score_match
 
     score = score_match[1].to_f
-    raise Error, "Aesthetic score #{score} is out of valid range (1.0-10.0)" unless score >= 1.0 && score <= 10.0
+    raise Error, "Aesthetic score #{score} is out of valid range (1.0-10.0)" unless score.between?(1.0, 10.0)
 
     score
   end
