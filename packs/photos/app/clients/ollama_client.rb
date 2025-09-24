@@ -19,6 +19,15 @@ class OllamaClient
     new(file_path: file_path).send(:detect_objects)
   end
 
+  # Gets an aesthetic score for an image using Ollama.
+  #
+  # @param file_path [String] The absolute path to the image file.
+  # @return [Integer] Aesthetic score from 1 to 10.
+  # @raise [OllamaClient::Error] if the API returns an error or the request fails.
+  def self.get_aesthetic_score(file_path:)
+    new(file_path: file_path).send(:aesthetic_score)
+  end
+
   private
 
   def initialize(file_path:)
@@ -51,6 +60,22 @@ class OllamaClient
   rescue Faraday::Error => e
     raise Error, "Request failed: #{e.message}"
   end
+
+  def aesthetic_score
+    encoded_image = encode_image
+    response = connection.post('/api/generate') do |req|
+      req.body = {
+        model: 'gemma2:27b',
+        prompt: aesthetic_score_prompt,
+        images: [encoded_image],
+        stream: false
+      }
+    end
+
+    handle_aesthetic_response(response)
+  rescue Faraday::Error => e
+    raise Error, "Request failed: #{e.message}"
+  end
   # rubocop:enable Metrics/MethodLength
 
   def encode_image
@@ -68,6 +93,13 @@ class OllamaClient
       'Example format: [{"label": "tree", "confidence": 0.95}, {"label": "car", "confidence": 0.87}]'
   end
 
+  def aesthetic_score_prompt
+    'Analyze this image and provide a subjective aesthetic score from 1 to 10, ' \
+      'where 1 is poor aesthetic quality and 10 is excellent aesthetic quality. ' \
+      'Consider factors like composition, lighting, color harmony, visual balance, and overall appeal. ' \
+      'Respond with only a single number between 1 and 10.'
+  end
+
   def handle_response(response)
     raise Error, "API Error: #{response.status} - #{response.body}" unless response.success?
 
@@ -78,6 +110,18 @@ class OllamaClient
     raise Error, 'No response field in Ollama API response' if ollama_response.nil?
 
     parse_objects_from_response(ollama_response)
+  end
+
+  def handle_aesthetic_response(response)
+    raise Error, "API Error: #{response.status} - #{response.body}" unless response.success?
+
+    response_body = response.body
+    raise Error, 'Empty response from Ollama API' if response_body.blank?
+
+    ollama_response = response_body['response']
+    raise Error, 'No response field in Ollama API response' if ollama_response.nil?
+
+    parse_aesthetic_score_from_response(ollama_response)
   end
 
   def parse_objects_from_response(response_text)
@@ -93,5 +137,18 @@ class OllamaClient
     rescue JSON::ParserError
       raise Error, "Failed to parse JSON response: #{e.message}"
     end
+  end
+
+  def parse_aesthetic_score_from_response(response_text)
+    # Extract numeric score from response text
+    # Handle various possible formats like "8", "Score: 7", "The aesthetic score is 6", etc.
+    numbers = response_text.scan(/\b\d+\b/).map(&:to_i)
+
+    # Find the first number that's in the valid range 1-10
+    valid_score = numbers.find { |num| num.between?(1, 10) }
+
+    raise Error, "No valid score (1-10) found in response: #{response_text}" unless valid_score
+
+    valid_score
   end
 end
