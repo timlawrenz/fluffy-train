@@ -36,24 +36,23 @@ module Photos
       def calculate_laplacian_variance(image)
         # Convert to grayscale if needed
         image = image.colourspace(:grey) if image.bands > 1
-        
-        # Create Laplacian kernel
-        # Standard Laplacian kernel: [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
-        laplacian_kernel = Vips::Image.new_from_array([
-          [0, -1, 0],
-          [-1, 4, -1],
-          [0, -1, 0]
-        ])
-        
-        # Apply convolution with the Laplacian kernel
+
+        # Apply Laplacian convolution and calculate variance
         laplacian_image = image.conv(laplacian_kernel)
-        
+
         # Calculate the variance of the Laplacian
         mean = laplacian_image.avg
-        squared_diff = (laplacian_image - mean) ** 2
-        variance = squared_diff.avg
-        
-        variance
+        squared_diff = (laplacian_image - mean)**2
+        squared_diff.avg
+      end
+
+      def laplacian_kernel
+        # Standard Laplacian kernel: [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
+        Vips::Image.new_from_array([
+                                     [0, -1, 0],
+                                     [-1, 4, -1],
+                                     [0, -1, 0]
+                                   ])
       end
     end
   end

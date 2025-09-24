@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/VerifiedDoubles
+
 require 'spec_helper'
 require 'gl_command'
 require 'gl_command/rspec'
@@ -45,7 +47,7 @@ RSpec.describe Photos::Analyse::Sharpness, type: :command do
       it 'calculates higher scores for sharper images' do
         sharp_result = described_class.call(photo: photo_sharp)
         blurry_result = described_class.call(photo: photo_blurry)
-        
+
         expect(sharp_result.sharpness_score).to be > blurry_result.sharpness_score
       end
     end
@@ -90,19 +92,23 @@ RSpec.describe Photos::Analyse::Sharpness, type: :command do
     require 'vips'
 
     # Create a sharp test image (high frequency content)
+    sharp_image = create_sharp_pattern
+    sharp_image.write_to_file(sharp_image_path)
+
+    # Create a blurry test image (same pattern but blurred)
+    blurry_image = sharp_image.gaussblur(5.0) # Apply Gaussian blur
+    blurry_image.write_to_file(blurry_image_path)
+  end
+
+  def create_sharp_pattern
     sharp_image = Vips::Image.black(100, 100)
     # Add high frequency pattern (checkerboard)
     (0...100).step(10) do |x|
       (0...100).step(10) do |y|
-        if ((x / 10) + (y / 10)).even?
-          sharp_image = sharp_image.draw_rect(255, x, y, 10, 10)
-        end
+        sharp_image = sharp_image.draw_rect(255, x, y, 10, 10) if ((x / 10) + (y / 10)).even?
       end
     end
-    sharp_image.write_to_file(sharp_image_path)
-
-    # Create a blurry test image (same pattern but blurred)
-    blurry_image = sharp_image.gaussblur(5.0)  # Apply Gaussian blur
-    blurry_image.write_to_file(blurry_image_path)
+    sharp_image
   end
 end
+# rubocop:enable RSpec/VerifiedDoubles
