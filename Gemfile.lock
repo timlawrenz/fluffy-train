@@ -486,6 +486,9 @@ GEM
       rubocop (~> 1.72, >= 1.72.1)
       rubocop-rspec (~> 3.5)
     ruby-progressbar (1.13.0)
+    ruby-vips (2.2.5)
+      ffi (~> 1.12)
+      logger
     rubyzip (3.1.0)
     sassc (2.4.0)
       ffi (~> 1.9)
@@ -661,6 +664,7 @@ DEPENDENCIES
   rubocop-rake
   rubocop-rspec
   rubocop-rspec_rails
+  ruby-vips
   sassc-rails
   selenium-webdriver
   sentry-rails

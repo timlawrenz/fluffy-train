@@ -29,6 +29,7 @@ gem 'bcrypt', '~> 3.1.7'
 gem 'bootsnap', require: false
 
 gem 'aws-sdk-s3', require: false
+gem 'ruby-vips'
 
 gem 'connection_pool'
 gem 'devise'
