@@ -89,7 +89,6 @@ RSpec.describe Photos::Analyse::Sharpness, type: :command do
   private
 
   def create_test_images
-    require 'vips'
 
     # Create a sharp test image (high frequency content)
     sharp_image = create_sharp_pattern
