@@ -7,7 +7,7 @@ module Scheduling
 
     chain Scheduling::Commands::CreatePostRecord,
           Scheduling::Commands::GeneratePublicPhotoUrl,
-          Scheduling::Commands::SendPostToBuffer,
-          Scheduling::Commands::UpdatePostWithBufferId
+          Scheduling::Commands::SendPostToInstagram,
+          Scheduling::Commands::UpdatePostWithInstagramId
   end
 end

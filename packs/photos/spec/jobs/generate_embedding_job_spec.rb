@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GenerateEmbeddingJob, type: :job do
+RSpec.describe GenerateEmbeddingJob do
   include ActiveJob::TestHelper
 
   let(:photo) { FactoryBot.create(:photo) }

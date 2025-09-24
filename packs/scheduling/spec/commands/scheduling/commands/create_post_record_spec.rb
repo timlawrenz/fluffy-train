@@ -4,10 +4,10 @@ require 'rails_helper'
 require 'gl_command/rspec'
 
 RSpec.describe Scheduling::Commands::CreatePostRecord, type: :command do
-  let(:photo) { instance_double('Photo', id: 1) }
-  let(:persona) { instance_double('Persona', id: 1) }
+  let(:photo) { instance_double(Photo, id: 1) }
+  let(:persona) { instance_double(Persona, id: 1) }
   let(:caption) { 'Test caption for the post' }
-  let(:created_post) { instance_double('Scheduling::Post', id: 1, destroy!: true) }
+  let(:created_post) { instance_double(Scheduling::Post, id: 1, destroy!: true) }
 
   before do
     allow(Scheduling::Post).to receive(:create!).and_return(created_post)

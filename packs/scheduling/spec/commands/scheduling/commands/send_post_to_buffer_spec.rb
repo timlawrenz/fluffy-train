@@ -6,8 +6,8 @@ require 'gl_command/rspec'
 RSpec.describe Scheduling::Commands::SendPostToBuffer, type: :command do
   let(:public_photo_url) { 'https://example.com/photo.jpg' }
   let(:caption) { 'Test caption for Buffer post' }
-  let(:persona) { instance_double('Persona', buffer_profile_id: 'buffer_profile_123') }
-  let(:buffer_client) { instance_double('Buffer::Client') }
+  let(:persona) { instance_double(Persona, buffer_profile_id: 'buffer_profile_123') }
+  let(:buffer_client) { instance_double(Buffer::Client) }
   let(:buffer_response) { { 'id' => 'buffer_post_456' } }
 
   before do
@@ -60,7 +60,7 @@ RSpec.describe Scheduling::Commands::SendPostToBuffer, type: :command do
     end
 
     context 'when persona has no buffer_profile_id' do
-      let(:persona) { instance_double('Persona', buffer_profile_id: nil) }
+      let(:persona) { instance_double(Persona, buffer_profile_id: nil) }
 
       before do
         allow(persona).to receive(:respond_to?).with(:buffer_profile_id).and_return(true)

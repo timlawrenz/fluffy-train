@@ -71,3 +71,4 @@ yarn-debug.log*
 
 # Ignore backup files
 *.backup
+\n# Ignore test images for personas\n/public/sarah

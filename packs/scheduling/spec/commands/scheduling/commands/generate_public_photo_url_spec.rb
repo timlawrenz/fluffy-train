@@ -4,8 +4,8 @@ require 'rails_helper'
 require 'gl_command/rspec'
 
 RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
-  let(:photo) { instance_double('Photo') }
-  let(:image_attachment) { instance_double('ActiveStorage::Attached::One') }
+  let(:photo) { instance_double(Photo) }
+  let(:image_attachment) { instance_double(ActiveStorage::Attached::One) }
   let(:public_url) { 'https://example.com/photo.jpg' }
 
   before do

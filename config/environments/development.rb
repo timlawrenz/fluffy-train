@@ -29,10 +29,14 @@ Rails.application.configure do
   config.cache_store = :memory_store
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  config.active_storage.service = :b2
 
-  # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
+  # Set default URL options for all parts of the app, including Active Storage in non-web contexts
+  Rails.application.routes.default_url_options = { host: 'localhost', port: 3000 }
+
 
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false

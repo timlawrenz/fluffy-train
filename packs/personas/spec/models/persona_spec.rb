@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Persona, type: :model do
+RSpec.describe Persona do
   describe 'validations' do
     it 'is valid with valid attributes' do
       persona = FactoryBot.build(:persona)

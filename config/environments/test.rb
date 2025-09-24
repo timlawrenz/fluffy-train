@@ -36,14 +36,13 @@ Rails.application.configure do
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  # Set default host for URL generation in tests
+  Rails.application.routes.default_url_options[:host] = 'localhost:3000'
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
-  # Raises error for missing translations.
-  # config.i18n.raise_on_missing_translations = true
+  # Raise exceptions for disallowed deprecations.
 
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true

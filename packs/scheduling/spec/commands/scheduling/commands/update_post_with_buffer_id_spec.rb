@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'gl_command/rspec'
 
 RSpec.describe Scheduling::Commands::UpdatePostWithBufferId, type: :command do
-  let(:post) { instance_double('Scheduling::Post', buffer_post_id: nil, status: 'draft') }
+  let(:post) { instance_double(Scheduling::Post, buffer_post_id: nil, status: 'draft') }
   let(:buffer_post_id) { 'buffer_post_456' }
 
   before do

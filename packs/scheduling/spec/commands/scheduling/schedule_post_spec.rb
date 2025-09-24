@@ -39,11 +39,11 @@ RSpec.describe Scheduling::SchedulePost, type: :command do
   describe 'command chain' do
     it 'defines the correct commands in order' do
       expect(described_class.commands).to eq([
-        Scheduling::Commands::CreatePostRecord,
-        Scheduling::Commands::GeneratePublicPhotoUrl,
-        Scheduling::Commands::SendPostToBuffer,
-        Scheduling::Commands::UpdatePostWithBufferId
-      ])
+                                               Scheduling::Commands::CreatePostRecord,
+                                               Scheduling::Commands::GeneratePublicPhotoUrl,
+                                               Scheduling::Commands::SendPostToBuffer,
+                                               Scheduling::Commands::UpdatePostWithBufferId
+                                             ])
     end
   end
 
