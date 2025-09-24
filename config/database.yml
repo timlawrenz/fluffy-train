@@ -24,9 +24,17 @@ development:
   primary:
     <<: *default
     database: fluffy_train_development
+    username: postgres
+    password: password
+    host: localhost
+    port: 5432
   queue:
     <<: *default
     database: fluffy_train_development_queue
+    username: postgres
+    password: password
+    host: localhost
+    port: 5432
     migrations_paths: db/queue_migrate
 
   # The specified database role being used to connect to PostgreSQL.
@@ -62,6 +70,10 @@ development:
 test:
   <<: *default
   database: fluffy_train_test
+  username: postgres
+  password: password
+  host: localhost
+  port: 5432
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

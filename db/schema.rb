@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_23_003348) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_24_000100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -48,6 +48,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_23_003348) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_personas_on_name", unique: true
+  end
+
+  create_table "photo_analyses", force: :cascade do |t|
+    t.bigint "photo_id", null: false
+    t.float "sharpness_score"
+    t.float "exposure_score"
+    t.float "aesthetic_score"
+    t.jsonb "detected_objects"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["photo_id"], name: "index_photo_analyses_on_photo_id"
   end
 
   create_table "photos", force: :cascade do |t|
@@ -156,6 +167,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_23_003348) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "photo_analyses", "photos"
   add_foreign_key "photos", "personas"
   add_foreign_key "scheduling_posts", "personas"
   add_foreign_key "scheduling_posts", "photos"

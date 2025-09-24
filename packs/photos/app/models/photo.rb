@@ -3,6 +3,7 @@
 class Photo < ApplicationRecord
   has_neighbors :embedding
   has_one_attached :image
+  has_one :photo_analysis, dependent: :destroy
 
   belongs_to :persona
 
