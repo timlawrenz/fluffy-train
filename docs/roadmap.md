@@ -40,6 +40,7 @@ Automate the quality control process by integrating advanced image analysis tech
 - A user can successfully filter the library for "all photos containing a bicycle."
 
 ## Milestone 3: Automated Posting Engine & Basic Scheduling
+
 ​Goal: Transform fluffy-train from a manual analysis tool into a true automation engine. This milestone establishes the core functionality of posting on a regular schedule without any daily human intervention.
 
 ### ​Key Features:
@@ -53,7 +54,7 @@ Automate the quality control process by integrating advanced image analysis tech
 ​The scheduler runs reliably for 3 consecutive days without manual intervention.
 ​The system correctly selects the highest-scoring available image and marks it as "posted" in its log to prevent reuse.
 
-##​Milestone 4: Narrative Curation via Thematic Clustering
+##​ Milestone 4: Narrative Curation via Thematic Clustering
 
 ​Goal: Introduce intelligent content curation. Instead of just posting the "best" photo, this milestone enables the application to tell stories and build a cohesive feed aesthetic by grouping images into visual themes.
 
