@@ -39,54 +39,65 @@ Automate the quality control process by integrating advanced image analysis tech
 - A user can define a rule like "only post images with an aesthetic score above 7/10" and the system correctly adheres to it.
 - A user can successfully filter the library for "all photos containing a bicycle."
 
-## Milestone 3: Basic Content Selection with Embeddings
+## Milestone 3: Automated Posting Engine & Basic Scheduling
+​Goal: Transform fluffy-train from a manual analysis tool into a true automation engine. This milestone establishes the core functionality of posting on a regular schedule without any daily human intervention.
 
-### Goal
-Introduce intelligent, automated content selection based on image embeddings. This moves the application from a manual tool to a basic automation engine, capable of curating a content calendar based on predefined strategies.
+### ​Key Features:
+​Direct Instagram API Integration: Replace the Buffer API with a robust integration to post images and captions directly to a specified Instagram account.
+​Automated Scheduler: Implement a cron job or similar scheduling system that runs the posting script automatically at a user-defined time and frequency (e.g., daily at 9:00 AM).
+​Basic Posting Strategy - "Curator's Choice": The default strategy will automatically select a single image for posting based on a simple rule: "Post the highest-rated, not-yet-posted image from the library," using the aesthetic and quality scores from Milestone 2.
+​Posting History Log: Create a simple database or log file to track which images have been posted to avoid duplicates.
 
-### Key Features
-- **Thematic Clustering**: Implement a feature to group images into visual themes using DINO embeddings.
-- **Text-Based Search**: Use CLIP embeddings to allow users to select images based on a text prompt (e.g., "a feeling of adventure").
-- **Similarity Search**: Given a selected image, find the top N most visually similar images using DINO embeddings.
-- **Content Strategy Implementation**: Create simple, selectable posting strategies, such as "Theme of the Week" (posting from a single cluster) or "Thematic Rotation" (posting from a different cluster each day).
+### ​Acceptance Criteria:
+​The application can successfully post an image and a predefined caption to Instagram on a set schedule.
+​The scheduler runs reliably for 3 consecutive days without manual intervention.
+​The system correctly selects the highest-scoring available image and marks it as "posted" in its log to prevent reuse.
 
-### Success Metrics
-- The system can automatically cluster the image library into at least 5 distinct, visually coherent themes.
-- A user can provide a text prompt and get a list of the top 10 relevant images with at least 80% accuracy (subjectively measured).
-- The application can automatically select and queue an image based on a chosen content strategy for 7 consecutive days without manual intervention.
+##​Milestone 4: Narrative Curation via Thematic Clustering
 
-## Milestone 4: Generative AI for Captions and Content Adaptation
+​Goal: Introduce intelligent content curation. Instead of just posting the "best" photo, this milestone enables the application to tell stories and build a cohesive feed aesthetic by grouping images into visual themes.
 
-### Goal
-Leverage generative AI to automate the creative aspects of posting, such as caption writing and image formatting, tailored to a specific brand persona. This milestone aims to make the entire content creation and scheduling process almost fully autonomous and on-brand.
+### ​Key Features:
+​Visual Theme Clustering: Integrate a script that uses DINO embeddings to analyze the entire "usable" photo library and group images into distinct visual clusters (e.g., "Cyberpunk Nights," "Forest Wanderer," "Beach Days").
+​Cluster Management UI: A simple interface (CLI is fine) to view the clusters, see the images within them, and give them descriptive names.
+​Content Strategy Engine: Develop a system to execute predefined posting strategies.
+​Strategy 1: "Theme of the Week": Post exclusively from a single named cluster for 7 days.
+​Strategy 2: "Thematic Rotation": Post one image from a different cluster each day to maximize variety.
 
-### Key Features
-- **Configurable Persona Definition**: Allow the user to define a detailed persona, including personality traits (e.g., witty, professional, adventurous), age, gender, and brand voice guidelines.
-- **Persona-Driven Caption Generation**: Use a model like BLIP or Git, guided by the defined persona, to generate relevant, on-brand captions, titles, and tags for a selected image.
-- **Image Adaptation (Outpainting)**: Implement a feature to automatically adapt image formats (e.g., extending a horizontal photo to a 4:5 vertical format for Instagram) using outpainting techniques.
-- **Caption Strategy**: Allow users to provide a high-level instruction for the caption, such as "make it witty" or "ask a question to engage the audience," which will be interpreted within the context of the defined persona.
+### ​Acceptance Criteria:
+​The system can automatically cluster a library of 1,000+ images into at least 10 visually coherent groups.
+​A user can successfully run the "Theme of the Week" strategy, and for 7 days, the application correctly posts images only from the selected cluster.
+​A user can switch to the "Thematic Rotation" strategy, and the system posts from a different cluster each day.
 
-### Success Metrics
-- A user can define and save at least three distinct personas.
-- For any given image, the system can generate 3 distinct caption options that are contextually relevant and consistent with the selected persona's voice.
-- When switching between personas, the generated captions for the same image show a clear and appropriate shift in tone, style, and vocabulary.
-- The generated captions require minimal to no editing for at least 80% of the images.
-- The system can successfully convert a landscape-oriented image into a portrait-oriented one without cropping the original content, and the result is visually coherent.
+## ​Milestone 5: Generative AI for Persona-Driven Storytelling
+​Goal: Automate the creative writing process. This milestone leverages generative AI to create compelling, on-brand captions that align with the fictional model's persona and the visual theme of the post.
 
-## Milestone 5: The Generative Feedback Loop
+### ​Key Features:
+​Configurable Persona Engine: Allow a user to define a persona for the fictional model in a configuration file, including key traits, tone of voice, and common topics.
+​Context-Aware Caption Generation: The system will generate captions based on multiple inputs:
+​The image itself.
+​The name of the visual cluster it belongs to (from Milestone 4).
+​The defined persona.
+​Hashtag and Tag Generation: Automatically suggest relevant hashtags based on the cluster name and image content.
 
-### Goal
-Create a self-optimizing content engine by establishing a feedback loop between post-performance and new content generation. This is the most advanced stage, where the system learns from audience engagement to create more successful content over time.
+### ​Acceptance Criteria:
+​For any given image, the system generates a caption that is relevant to both the image content and the name of its cluster (e.g., a "Cyberpunk" image gets a futuristic caption).
+​The generated captions clearly reflect the tone and traits defined in the persona file.
+​The system automatically appends at least 5 relevant hashtags to the generated caption.
+​The entire process from image selection to caption generation to posting can run fully autonomously.
 
-### Key Features
-- **Performance Data Collection**: Integrate with the Instagram (or Buffer) API to collect engagement metrics (likes, comments, shares) for each post.
-- **Success Score Calculation**: Develop an algorithm to calculate a weighted "Success Score" for each post based on its performance data.
-- **Patch-Level Embedding Analysis**: For top-performing posts, extract patch-level embeddings (e.g., from DINOv2) to identify successful micro-features.
-- **Feature-to-Text Translation**: Use a multi-modal model to translate the successful visual micro-features into textual descriptions.
-- **Optimized Prompt Synthesis**: Automatically combine the textual descriptions of successful features to generate new, optimized prompts for an image generation model (e.g., FLUX).
+## ​Milestone 6: The Generative Feedback Loop & Self-Optimization
+​Goal: Create a self-improving content engine. This final milestone closes the loop by allowing audience engagement to directly influence the creation of new, optimized images.
 
-### Success Metrics
-- The system can successfully retrieve and store engagement data for all posts it schedules.
-- The system can identify the top 10% of performing posts based on the calculated Success Score.
-- The system can generate a list of at least 20 textual concepts (e.g., "curly blonde hair," "bokeh background") that are statistically correlated with high engagement.
-- The system can automatically generate a new, optimized prompt that, when used to generate a new batch of images, results in a 10% higher average Success Score compared to the previous batch.
+### ​Key Features:
+​Performance Data Scraper: A script to periodically scrape engagement metrics (likes, comments) for each post made by the application.
+​Success Score Algorithm: Calculate a weighted "Success Score" for each post to identify top performers.
+​Patch-Level Feature Analysis: For the top 10% of posts, extract patch-level DINO embeddings to identify recurring successful micro-features (e.g., a specific hairstyle, background texture, clothing style).
+​Feature-to-Prompt Synthesis: A system to translate these successful visual features into textual concepts.
+​Optimized Prompt Generation: Automatically combine the most successful concepts to generate new, high-potential prompts for the FLUX image generation model.
+
+### ​Acceptance Criteria:
+​The system can retrieve and store engagement data for all its posts.
+​The system can rank all past posts by their Success Score and identify the top performers.
+​The system can output a list of at least 10 textual concepts (e.g., "curly hair," "leather jacket," "rainy street") that are statistically correlated with high engagement.
+​The system can successfully generate a new, fully-formed prompt ready for use in the FLUX model, representing a "greatest hits" combination of successful elements.
