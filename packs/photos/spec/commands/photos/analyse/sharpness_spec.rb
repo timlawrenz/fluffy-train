@@ -9,13 +9,13 @@ require 'vips'
 
 # Mock Photo class for testing
 
-
 require_relative '../../../../app/commands/photos/analyse/sharpness'
 
 RSpec.describe Photos::Analyse::Sharpness, type: :command do
   before do
     stub_const('Photo', Class.new)
   end
+
   let(:temp_dir) { '/tmp/fluffy_train_test_images' }
   let(:sharp_image_path) { File.join(temp_dir, 'sharp_test_image.jpg') }
   let(:blurry_image_path) { File.join(temp_dir, 'blurry_test_image.jpg') }
@@ -92,7 +92,6 @@ RSpec.describe Photos::Analyse::Sharpness, type: :command do
   private
 
   def create_test_images
-
     # Create a sharp test image (high frequency content)
     sharp_image = create_sharp_pattern
     sharp_image.write_to_file(sharp_image_path)

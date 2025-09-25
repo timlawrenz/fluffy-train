@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'photos/import'
+
 class BulkImportPhotos < GLCommand::Callable
   requires :folder, persona: Persona
   returns :imported_count
@@ -20,7 +22,7 @@ class BulkImportPhotos < GLCommand::Callable
     initial_count = Photo.count
 
     all_file_paths.each do |path|
-      CreatePhoto.call!(path: path, persona: persona)
+      Photos::Import.call!(path: path, persona: persona)
     end
 
     context.imported_count = Photo.count - initial_count
