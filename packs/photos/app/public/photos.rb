@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../commands/photos/import'
+
 # The public API for the photos pack.
 module Photos
   # Finds a Photo by its ID.
@@ -10,13 +12,13 @@ module Photos
     Photo.find_by(id: id)
   end
 
-  # Creates a new Photo.
+  # Creates a new Photo and analyzes it.
   #
   # @param path [String] the path of the new photo.
   # @param persona [Persona] the persona this photo belongs to.
-  # @return [GLCommand::Context] the result of the CreatePhoto command.
+  # @return [GLCommand::Context] the result of the Photos::Import command.
   def self.create(path:, persona:)
-    CreatePhoto.call(path: path, persona: persona)
+    Photos::Import.call(path: path, persona: persona)
   end
 
   # Bulk imports photos from a folder for a specific persona.
