@@ -19,7 +19,7 @@ namespace :instagram do
       puts "Error: The '#{persona.name}' persona has no photos. Please import some first."
       exit 1
     end
-    
+
     photo = Scheduling.unscheduled_for_persona(persona: persona).sample
     unless photo
       puts 'Error: Could not find an unscheduled photo for this persona. All photos may be scheduled.'
@@ -29,8 +29,8 @@ namespace :instagram do
 
     # 3. Ensure the photo has an ActiveStorage attachment
     unless photo.image.attached?
-        puts "Attaching image to photo record..."
-        photo.image.attach(io: File.open(photo.path), filename: File.basename(photo.path))
+      puts 'Attaching image to photo record...'
+      photo.image.attach(io: File.open(photo.path), filename: File.basename(photo.path))
     end
 
     # 4. Schedule the Post
