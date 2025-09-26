@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_24_000100) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_26_002946) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -76,7 +76,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_24_000100) do
     t.bigint "persona_id", null: false
     t.text "caption"
     t.string "status", default: "draft", null: false
-    t.string "external_post_id"
+    t.string "provider_post_id"
     t.datetime "scheduled_at"
     t.datetime "posted_at"
     t.datetime "created_at", null: false

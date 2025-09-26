@@ -9,10 +9,10 @@ module Scheduling
       def call
         # Store the original state for rollback
         @original_status = post.status
-        @original_buffer_post_id = post.buffer_post_id
+        @original_provider_post_id = post.provider_post_id
 
         # Update the post with the buffer_post_id and transition to scheduled
-        post.update!(buffer_post_id: buffer_post_id)
+        post.update!(provider_post_id: buffer_post_id)
         post.schedule! # This triggers the state machine transition from draft to scheduled
 
         # Return the updated post
@@ -22,10 +22,10 @@ module Scheduling
       def rollback
         return unless post
 
-        # Revert the status and clear the buffer_post_id
+        # Revert the status and clear the provider_post_id
         post.update!(
           status: @original_status,
-          buffer_post_id: @original_buffer_post_id
+          provider_post_id: @original_provider_post_id
         )
       end
     end
