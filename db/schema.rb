@@ -76,7 +76,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_24_000100) do
     t.bigint "persona_id", null: false
     t.text "caption"
     t.string "status", default: "draft", null: false
-    t.string "external_post_id"
+    t.string "provider_post_id"
     t.datetime "scheduled_at"
     t.datetime "posted_at"
     t.datetime "created_at", null: false
