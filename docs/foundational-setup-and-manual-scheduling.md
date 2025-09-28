@@ -6,7 +6,7 @@
 
 ## 1. Overview
 
-This document outlines the requirements for the first milestone of the `fluffy-train` project: "Foundational Setup & Manual Scheduling." The goal of this milestone is to deliver the most basic, end-to-end user flow: ingesting a library of photos, allowing a user to select one, and scheduling it to be posted on social media via the Buffer API.
+This document outlines the requirements for the first milestone of the `fluffy-train` project: "Foundational Setup & Manual Scheduling." The goal of this milestone is to deliver the most basic, end-to-end user flow: ingesting a library of photos, allowing a user to select one, and scheduling it to be posted on social media.
 
 This milestone leverages the existing `fluffy-train` Rails application, which already provides the core data models and services for managing personas and photos.
 
@@ -34,7 +34,7 @@ To track scheduled and published content, we need a new data model. This will pr
     *   `persona_id` (foreign key to `Persona`)
     *   `caption` (text)
     *   `status` (string, e.g., `draft`, `scheduled`, `posted`, `failed`)
-    *   `buffer_post_id` (string, to store the ID from the Buffer API)
+    *   `provider_post_id` (string, to store the ID from the social media provider)
     *   `scheduled_at` (datetime)
     *   `posted_at` (datetime)
 *   The `Post` model should have a unique index on `photo_id` to prevent scheduling the same photo multiple times.
@@ -55,25 +55,25 @@ A console-based interface is required to interact with the system.
 *   Expose the existing `Personas` and `Photos` pack functionalities through a clear, console-friendly internal API.
 *   Create commands/methods to list personas and photos, returning ActiveRecord relations or arrays of objects that are easy to inspect in the console.
 
-### 3.3. Buffer API Integration & Scheduling Workflow
+### 3.3. Social Media API Integration & Scheduling Workflow
 
-The application needs to be able to communicate with the Buffer API to schedule posts, now using the `Post` model as the source of truth.
+The application needs to be able to communicate with a social media API to schedule posts, now using the `Post` model as the source of truth.
 
 **User Stories:**
 
 *   As a developer on the console, when I decide to schedule a photo, I want to call a command, passing the photo object and a caption string as arguments.
 *   As a developer on the console, I want this command to first create a `Post` record in the database with a `scheduled` status.
-*   As a developer on the console, I want the application to then send the photo and caption to my Buffer queue.
-*   As a developer on the console, I want to see a clear success or failure message returned, and the `Post` record should be updated accordingly (e.g., storing the `buffer_post_id` on success or updating status to `failed` on error).
+*   As a developer on the console, I want the application to then send the photo and caption to my social media queue.
+*   As a developer on the console, I want to see a clear success or failure message returned, and the `Post` record should be updated accordingly (e.g., storing the `provider_post_id` on success or updating status to `failed` on error).
 
 **Technical Requirements:**
 
-*   Create a new service within the `scheduling` pack responsible for interacting with the Buffer API.
+*   Create a new service within the `scheduling` pack responsible for interacting with the social media API.
 *   Implement a `Scheduling.schedule_post(photo:, caption:)` method.
 *   This method must first check if a `Post` record already exists for the given `photo`. If so, it should return a failure context to prevent duplicates.
 *   If no post exists, it should create a new `Post` record.
-*   It will then handle authentication and format the API request for Buffer.
-*   Upon a successful API response, it must update the `Post` record with the `buffer_post_id` and set the status to `scheduled`.
+*   It will then handle authentication and format the API request for the social media provider.
+*   Upon a successful API response, it must update the `Post` record with the `provider_post_id` and set the status to `scheduled`.
 *   Error handling is crucial. On API failure, the `Post` record's status should be updated to `failed`.
 *   The entire operation should be handled in a background job (`SolidQueue`) to ensure resilience.
 
@@ -83,6 +83,6 @@ The application needs to be able to communicate with the Buffer API to schedule 
 *   A developer can use the Rails console to list personas and view the photos for a specific persona.
 *   When a developer attempts to schedule a photo from the console, a `Post` record is created in the database.
 *   The scheduling command fails if a `Post` already exists for that photo, preventing duplicates.
-*   The scheduled post appears correctly in the Buffer queue with the correct image and caption.
-*   The corresponding `Post` record is updated with the `buffer_post_id` and a `scheduled` status.
+*   The scheduled post appears correctly in the social media queue with the correct image and caption.
+*   The corresponding `Post` record is updated with the `provider_post_id` and a `scheduled` status.
 *   The scheduling command returns a clear success or failure context object to the console.

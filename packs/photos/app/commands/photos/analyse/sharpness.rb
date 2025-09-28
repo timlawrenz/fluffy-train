@@ -35,7 +35,7 @@ module Photos
 
       def calculate_laplacian_variance(image)
         # Convert to grayscale if needed
-        image = image.colourspace(:grey) if image.bands > 1
+        image = image.colourspace(:grey16) if image.bands > 1
 
         # Apply Laplacian convolution and calculate variance
         laplacian_image = image.conv(laplacian_kernel)

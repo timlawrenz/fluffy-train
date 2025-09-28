@@ -48,7 +48,7 @@ class OllamaClient
     encoded_image = encode_image
     response = connection.post('/api/generate') do |req|
       req.body = {
-        model: 'gemma2:27b',
+        model: 'gemma3:27b',
         prompt: object_detection_prompt,
         images: [encoded_image],
         stream: false,
@@ -65,7 +65,7 @@ class OllamaClient
     encoded_image = encode_image
     response = connection.post('/api/generate') do |req|
       req.body = {
-        model: 'gemma2:27b',
+        model: 'gemma3:27b',
         prompt: aesthetic_score_prompt,
         images: [encoded_image],
         stream: false
@@ -106,10 +106,7 @@ class OllamaClient
     response_body = response.body
     raise Error, 'Empty response from Ollama API' if response_body.blank?
 
-    ollama_response = response_body['response']
-    raise Error, 'No response field in Ollama API response' if ollama_response.nil?
-
-    parse_objects_from_response(ollama_response)
+    JSON.parse(response_body['response'])['objects']
   end
 
   def handle_aesthetic_response(response)
@@ -122,21 +119,6 @@ class OllamaClient
     raise Error, 'No response field in Ollama API response' if ollama_response.nil?
 
     parse_aesthetic_score_from_response(ollama_response)
-  end
-
-  def parse_objects_from_response(response_text)
-    # Try to parse the JSON response
-    JSON.parse(response_text)
-  rescue JSON::ParserError => e
-    # If JSON parsing fails, try to extract JSON from the response text
-    json_match = response_text.match(/\[.*\]/m)
-    raise Error, "No valid JSON array found in response: #{response_text}" unless json_match
-
-    begin
-      JSON.parse(json_match[0])
-    rescue JSON::ParserError
-      raise Error, "Failed to parse JSON response: #{e.message}"
-    end
   end
 
   def parse_aesthetic_score_from_response(response_text)

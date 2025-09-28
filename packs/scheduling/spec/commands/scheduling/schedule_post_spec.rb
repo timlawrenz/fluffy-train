@@ -12,20 +12,16 @@ RSpec.describe Scheduling::SchedulePost, type: :command do
   # Mock command contexts
   let(:create_post_context) { double('CreatePostContext', post: created_post) }
   let(:generate_url_context) { double('GenerateUrlContext', public_photo_url: 'https://example.com/photo.jpg') }
-  let(:send_buffer_context) { double('SendBufferContext', buffer_post_id: 'buffer_456') }
   let(:update_post_context) { double('UpdatePostContext', post: created_post) }
 
   before do
     # Mock the individual commands
     allow(Scheduling::Commands::CreatePostRecord).to receive(:call).and_return(create_post_context)
     allow(Scheduling::Commands::GeneratePublicPhotoUrl).to receive(:call).and_return(generate_url_context)
-    allow(Scheduling::Commands::SendPostToBuffer).to receive(:call).and_return(send_buffer_context)
-    allow(Scheduling::Commands::UpdatePostWithBufferId).to receive(:call).and_return(update_post_context)
 
     # Mock success status
     allow(create_post_context).to receive(:success?).and_return(true)
     allow(generate_url_context).to receive(:success?).and_return(true)
-    allow(send_buffer_context).to receive(:success?).and_return(true)
     allow(update_post_context).to receive(:success?).and_return(true)
   end
 
@@ -40,9 +36,7 @@ RSpec.describe Scheduling::SchedulePost, type: :command do
     it 'defines the correct commands in order' do
       expect(described_class.commands).to eq([
                                                Scheduling::Commands::CreatePostRecord,
-                                               Scheduling::Commands::GeneratePublicPhotoUrl,
-                                               Scheduling::Commands::SendPostToBuffer,
-                                               Scheduling::Commands::UpdatePostWithBufferId
+                                               Scheduling::Commands::GeneratePublicPhotoUrl
                                              ])
     end
   end

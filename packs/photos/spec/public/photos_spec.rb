@@ -4,15 +4,19 @@ require 'rails_helper'
 
 RSpec.describe Photos do
   include ActiveJob::TestHelper
+  include GLCommand::Matchers
 
   let!(:persona) { FactoryBot.create(:persona) }
 
   describe '.create' do
+    let(:analysis_result) { Photos::AnalysePhoto.build_context }
+
     context 'with valid data' do
-      let(:path) { '/path/to/image.jpg' }
+      let(:path) { Rails.root.join('spec/fixtures/files/example.png').to_s }
 
       it 'returns a successful context' do
         result = described_class.create(path: path, persona: persona)
+        puts result.inspect
         expect(result).to be_success
       end
 
@@ -35,7 +39,7 @@ RSpec.describe Photos do
     end
 
     context 'when photo already exists' do
-      let!(:existing_photo) { FactoryBot.create(:photo) }
+      let!(:existing_photo) { FactoryBot.create(:photo, path: Rails.root.join('spec/fixtures/files/example.png').to_s) }
       let(:new_persona) { FactoryBot.create(:persona) }
 
       it 'returns a successful context' do

@@ -5,19 +5,19 @@ This document outlines the development roadmap for `fluffy-train`, a project des
 ## Milestone 1: Foundational Setup & Manual Scheduling
 
 ### Goal
-Establish the core infrastructure for the application. The primary objective is to enable a user to manually select a pre-processed image from the library and schedule it for posting to Instagram via the Buffer API. This milestone focuses on setting up the essential pipeline and user interaction.
+Establish the core infrastructure for the application. The primary objective is to enable a user to manually select a pre-processed image from the library and schedule it for posting to Instagram. This milestone focuses on setting up the essential pipeline and user interaction.
 
 ### Key Features
 - **Image Library Ingestion**: Script to scan a directory of images, generate CLIP and DINO embeddings, and store them in a searchable database (e.g., a vector database or a simple file-based index).
 - **Basic User Interface (CLI or simple Web UI)**: An interface to view images from the library.
 - **Manual Selection**: Allow the user to select a specific image from the library.
-- **Buffer API Integration**: Connect to the Buffer API to schedule the selected image for posting. The user will manually provide the caption.
+- **Social Media API Integration**: Connect to a social media API to schedule the selected image for posting. The user will manually provide the caption.
 
 ### Success Metrics
 - A user can successfully ingest a folder of at least 100 images.
 - A user can view the ingested images.
-- A user can select an image and successfully queue it to a Buffer account.
-- The scheduled post appears correctly in the Buffer queue.
+- A user can select an image and successfully queue it to a social media account.
+- The scheduled post appears correctly in the social media queue.
 
 ## Milestone 2: Advanced Photo Analysis & Quality Control
 
@@ -129,11 +129,11 @@ Goal: Combine the content strategy engine with the generative AI components to c
 
 ### Key Features:
 - **Pipeline Integration**: The caption and hashtag generation modules (5a, 5b) are integrated into the automated posting scheduler from Milestone 4c.
-- **End-to-End Automation**: The entire process, from thematic image selection to creative writing to scheduling via the Buffer API, runs on a predefined schedule.
+- **End-to-End Automation**: The entire process, from thematic image selection to creative writing to scheduling via a social media API, runs on a predefined schedule.
 
 ### Acceptance Criteria:
-- The application can run fully autonomously for 3 consecutive days, each day correctly selecting an image based on the active strategy, generating a persona-driven caption with hashtags, and scheduling it via the Buffer API.
-- The final post content scheduled in Buffer correctly contains the selected image, a thematically appropriate caption, and relevant hashtags.
+- The application can run fully autonomously for 3 consecutive days, each day correctly selecting an image based on the active strategy, generating a persona-driven caption with hashtags, and scheduling it via a social media API.
+- The final post content scheduled on the social media platform correctly contains the selected image, a thematically appropriate caption, and relevant hashtags.
 - The system correctly logs all key steps of the fully automated process, from selection to generation to scheduling.
 
 ## Milestone 6: The Generative Feedback Loop & Self-Optimization

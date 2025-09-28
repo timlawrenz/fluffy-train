@@ -15,7 +15,7 @@ local:
 #   bucket: your_own_bucket-<%= Rails.env %>
 
 # Use bin/rails credentials:edit to set the B2 secrets (as b2:access_key_id|application_key)
-# The bucket must be configured for public read access to ensure Buffer API can download photos
+# The bucket must be configured for public read access to ensure the API can download photos
 b2:
   service: S3
   access_key_id: <%= Rails.application.credentials.dig(:b2, :access_key_id) %>

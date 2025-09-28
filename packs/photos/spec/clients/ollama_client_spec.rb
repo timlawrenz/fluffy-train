@@ -55,7 +55,7 @@ RSpec.describe OllamaClient do
     it 'sends correct request to Ollama API' do
       encoded_image = Base64.strict_encode64(test_image_content)
       expected_body = {
-        model: 'gemma2:27b',
+        model: 'gemma3:27b',
         prompt: match(/Analyze this image and identify the main objects/),
         images: [encoded_image],
         stream: false,
@@ -236,7 +236,7 @@ RSpec.describe OllamaClient do
     it 'sends correct request to Ollama API' do
       encoded_image = Base64.strict_encode64(test_image_content)
       expected_body = {
-        model: 'gemma2:27b',
+        model: 'gemma3:27b',
         prompt: match(/aesthetic score from 1 to 10/),
         images: [encoded_image],
         stream: false

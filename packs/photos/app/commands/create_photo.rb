@@ -17,6 +17,10 @@ class CreatePhoto < GLCommand::Callable
     end
   end
 
+  def rollback
+    @photo&.destroy if @created_in_command
+  end
+
   private
 
   def create_new_photo
@@ -38,9 +42,5 @@ class CreatePhoto < GLCommand::Callable
         filename: File.basename(path)
       )
     end
-  end
-
-  def rollback
-    @photo&.destroy if @created_in_command
   end
 end

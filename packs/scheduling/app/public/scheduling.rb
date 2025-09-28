@@ -15,7 +15,7 @@ module Scheduling
     persona.photos.where.not(id: scheduled_photo_ids).to_a
   end
 
-  # Schedules a photo for posting to Buffer by invoking the
+  # Schedules a photo for posting by invoking the
   # Scheduling::Chain::SchedulePost command chain.
   #
   # @param photo [Photos::Photo] the photo to schedule
@@ -30,13 +30,12 @@ module Scheduling
     )
   end
 
-  # Connects to the Buffer API to get the status for recent posts for a given
+  # Connects to the provider API to get the status for recent posts for a given
   # persona and updates the database.
   #
   # @param persona [Personas::Persona] the persona to sync statuses for
   # @return [GLCommand::Context] the result with updated posts
   def self.sync_post_statuses(persona:) # rubocop:disable Lint/UnusedMethodArgument
-    # TODO: This will be implemented once Buffer::Client and sync commands exist
     # For now, create a simple successful result using a stub command
     StubSyncPostStatusesCommand.call
   end

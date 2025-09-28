@@ -35,7 +35,7 @@ module Photos
 
       def calculate_mean_brightness(image)
         # Convert to grayscale if needed to get luminance values
-        image = image.colourspace(:grey) if image.bands > 1
+        image = image.colourspace(:grey16) if image.bands > 1
 
         # Calculate the mean brightness (average pixel value)
         # This gives us a value between 0 (black) and 255 (white) for 8-bit images

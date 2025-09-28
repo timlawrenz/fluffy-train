@@ -33,7 +33,6 @@ This document outlines the technical implementation details for Milestone 3, whi
     *   To support automated posting, the existing `Scheduling::Post` model will be adapted. This avoids creating a redundant model and keeps posting-related data unified.
     *   **Migrations:**
         *   **`add_photo_id_to_scheduling_posts`**: A migration will be created to add a `photo_id` foreign key to the `scheduling_posts` table. This will establish a direct link between a scheduled post and a photo.
-        *   **`rename_buffer_post_id_in_scheduling_posts`**: A migration will be created to rename the `buffer_post_id` column to `provider_post_id`. This makes the column name more generic and suitable for storing the ID from the Meta API.
         *   **`add_status_to_scheduling_posts`**: A migration will add a `status` string column. This will be managed as a state machine (per `CONVENTIONS.md`) to track the posting lifecycle (`posting`, `posted`, `failed`), preventing duplicate posts and providing a clear audit trail.
 
 #### B. Core Logic: The Posting Job
