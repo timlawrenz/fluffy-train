@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Photos do
   let!(:persona) { FactoryBot.create(:persona) }
-  let(:photo_path) { Rails.root.join('spec', 'fixtures', 'files', 'example.png') }
+  let(:photo_path) { Rails.root.join('spec/fixtures/files/example.png') }
   # Use the correct `build_context` helper to create the mock context.
   let(:mock_import_context) { Photos::Import.build_context(photo: FactoryBot.build_stubbed(:photo)) }
 

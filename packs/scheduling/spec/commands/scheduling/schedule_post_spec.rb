@@ -12,10 +12,19 @@ RSpec.describe Scheduling::SchedulePost, type: :command do
 
   # Mock command contexts that are more realistic for a chainable command.
   # They need to respond to `returns` and `errors` so the chainable can pass context.
-  let(:create_post_context) { double('CreatePostContext', post: created_post, returns: { post: created_post }, errors: []) }
-  let(:generate_url_context) { double('GenerateUrlContext', public_photo_url: 'https://example.com/photo.jpg', returns: { public_photo_url: 'https://example.com/photo.jpg' }, errors: []) }
-  let(:send_to_instagram_context) { double('SendToInstagramContext', provider_post_id: '12345', returns: { provider_post_id: '12345' }, errors: []) }
-  let(:update_post_context) { double('UpdatePostContext', post: created_post, returns: { post: created_post }, errors: []) }
+  let(:create_post_context) do
+    double('CreatePostContext', post: created_post, returns: { post: created_post }, errors: [])
+  end
+  let(:generate_url_context) do
+    double('GenerateUrlContext', public_photo_url: 'https://example.com/photo.jpg',
+                                 returns: { public_photo_url: 'https://example.com/photo.jpg' }, errors: [])
+  end
+  let(:send_to_instagram_context) do
+    double('SendToInstagramContext', provider_post_id: '12345', returns: { provider_post_id: '12345' }, errors: [])
+  end
+  let(:update_post_context) do
+    double('UpdatePostContext', post: created_post, returns: { post: created_post }, errors: [])
+  end
 
   before do
     # Mock the individual commands

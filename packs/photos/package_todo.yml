@@ -1,0 +1,21 @@
+# This file contains a list of dependencies that are not part of the long term plan for the
+# 'packs/photos' package.
+# We should generally work to reduce this list over time.
+#
+# You can regenerate this file using the following command:
+#
+# bin/packwerk update-todo
+---
+".":
+  "::ApplicationJob":
+    violations:
+    - dependency
+    files:
+    - packs/photos/app/jobs/generate_embedding_job.rb
+  "::ApplicationRecord":
+    violations:
+    - dependency
+    files:
+    - packs/photos/app/models/photo.rb
+    - packs/photos/app/models/photo_analysis.rb
+    - packs/photos/spec/integration/photos_import_integration_spec.rb

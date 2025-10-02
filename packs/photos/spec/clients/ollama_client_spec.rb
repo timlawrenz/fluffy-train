@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'webmock/rspec'
 
 RSpec.describe OllamaClient do
-  let(:test_image_path) { Rails.root.join('spec', 'fixtures', 'files', 'example.png') }
+  let(:test_image_path) { Rails.root.join('spec/fixtures/files/example.png') }
   let(:base_url) { 'http://localhost:11434' }
   let(:api_url) { "#{base_url}/api/generate" }
 

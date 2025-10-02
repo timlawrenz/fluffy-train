@@ -1,0 +1,31 @@
+# This file contains a list of dependencies that are not part of the long term plan for the
+# '.' package.
+# We should generally work to reduce this list over time.
+#
+# You can regenerate this file using the following command:
+#
+# bin/packwerk update-todo
+---
+packs/personas:
+  "::Persona":
+    violations:
+    - dependency
+    files:
+    - lib/tasks/photos.rake
+  "::Personas":
+    violations:
+    - dependency
+    files:
+    - lib/tasks/instagram.rake
+packs/photos:
+  "::Photos":
+    violations:
+    - dependency
+    files:
+    - lib/tasks/photos.rake
+packs/scheduling:
+  "::Scheduling":
+    violations:
+    - dependency
+    files:
+    - lib/tasks/instagram.rake
