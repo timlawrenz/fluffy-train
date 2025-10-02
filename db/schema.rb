@@ -13,7 +13,7 @@
 ActiveRecord::Schema[8.0].define(version: 2025_09_26_002946) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
-  # enable_extension "vector"  # Temporarily disabled for testing
+  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -66,7 +66,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_26_002946) do
     t.string "path", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    # t.vector "embedding", limit: 512  # Temporarily disabled for testing
+    t.vector "embedding", limit: 512
     t.index ["path"], name: "index_photos_on_path", unique: true
     t.index ["persona_id"], name: "index_photos_on_persona_id"
   end

@@ -21,7 +21,6 @@ default: &default
 
 
 development:
-  <<: *default
   primary:
     database: fluffy_train_development
     username: postgres
