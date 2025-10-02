@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Scheduling::Post, type: :model do
+RSpec.describe Scheduling::Post do
   describe 'associations' do
     it { is_expected.to belong_to(:photo).class_name('Photo') }
     it { is_expected.to belong_to(:persona).class_name('Persona') }
@@ -27,33 +27,51 @@ RSpec.describe Scheduling::Post, type: :model do
       end
     end
 
-    describe 'mark_as_posted event' do
-      before do
-        post.status = 'scheduled'
+    describe 'start_posting event' do
+      it 'transitions from draft to posting' do
+        post.start_posting
+        expect(post).to be_posting
       end
 
+      it 'cannot start posting from non-draft states' do
+        post.status = 'scheduled'
+        expect { post.start_posting! }.to raise_error(StateMachines::InvalidTransition)
+      end
+    end
+
+    describe 'mark_as_posted event' do
       it 'transitions from scheduled to posted' do
+        post.status = 'scheduled'
         post.mark_as_posted
         expect(post).to be_posted
       end
 
-      it 'cannot mark as posted from non-scheduled states' do
+      it 'transitions from posting to posted' do
+        post.status = 'posting'
+        post.mark_as_posted
+        expect(post).to be_posted
+      end
+
+      it 'cannot mark as posted from non-scheduled/posting states' do
         post.status = 'draft'
         expect { post.mark_as_posted! }.to raise_error(StateMachines::InvalidTransition)
       end
     end
 
     describe 'mark_as_failed event' do
-      before do
-        post.status = 'scheduled'
-      end
-
       it 'transitions from scheduled to failed' do
+        post.status = 'scheduled'
         post.mark_as_failed
         expect(post).to be_failed
       end
 
-      it 'cannot mark as failed from non-scheduled states' do
+      it 'transitions from posting to failed' do
+        post.status = 'posting'
+        post.mark_as_failed
+        expect(post).to be_failed
+      end
+
+      it 'cannot mark as failed from non-scheduled/posting states' do
         post.status = 'draft'
         expect { post.mark_as_failed! }.to raise_error(StateMachines::InvalidTransition)
       end

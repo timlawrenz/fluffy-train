@@ -10,6 +10,7 @@ module Scheduling
     state_machine :status, initial: :draft do
       state :draft
       state :scheduled
+      state :posting
       state :posted
       state :failed
 
@@ -17,12 +18,16 @@ module Scheduling
         transition draft: :scheduled
       end
 
+      event :start_posting do
+        transition draft: :posting
+      end
+
       event :mark_as_posted do
-        transition scheduled: :posted
+        transition %i[scheduled posting] => :posted
       end
 
       event :mark_as_failed do
-        transition scheduled: :failed
+        transition %i[scheduled posting] => :failed
       end
     end
   end
