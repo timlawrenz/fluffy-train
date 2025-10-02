@@ -2,17 +2,24 @@
 
 require 'rails_helper'
 require 'gl_command/rspec'
+require 'tempfile'
 
 module Photos
   module Analyse
     RSpec.describe Aesthetics, type: :command do
-      let(:photo) { FactoryBot.create(:photo) }
+      let(:photo) { FactoryBot.create(:photo, path: tempfile.path) }
+      let(:tempfile) { Tempfile.new(['test_photo', '.jpg']) }
       let(:mock_llm_client) do
         Class.new do
           def self.get_aesthetic_score(file_path:)
             85
           end
         end
+      end
+
+      after do
+        tempfile.close
+        tempfile.unlink
       end
 
       describe 'interface' do
@@ -41,7 +48,7 @@ module Photos
 
         context 'without a photo file' do
           before do
-            allow(File).to receive(:exist?).with(photo.path).and_return(false)
+            photo.update(path: '/non/existent/file.jpg')
           end
 
           it 'fails' do
