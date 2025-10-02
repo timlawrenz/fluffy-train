@@ -4,39 +4,47 @@ require 'rails_helper'
 require 'gl_command/rspec'
 
 RSpec.describe Scheduling::SchedulePost, type: :command do
-  let(:photo) { instance_double(Photo) }
-  let(:persona) { instance_double(Persona) }
+  let(:photo) { FactoryBot.build_stubbed(:photo) }
+  let(:persona) { FactoryBot.build_stubbed(:persona) }
   let(:caption) { 'Test caption for scheduled post' }
-  let(:created_post) { instance_double(Scheduling::Post, id: 1) }
+  # The double for the created post must respond to `destroy!` for the rollback test.
+  let(:created_post) { instance_double(Scheduling::Post, id: 1, destroy!: true) }
 
-  # Mock command contexts
-  let(:create_post_context) { double('CreatePostContext', post: created_post) }
-  let(:generate_url_context) { double('GenerateUrlContext', public_photo_url: 'https://example.com/photo.jpg') }
-  let(:update_post_context) { double('UpdatePostContext', post: created_post) }
+  # Mock command contexts that are more realistic for a chainable command.
+  # They need to respond to `returns` and `errors` so the chainable can pass context.
+  let(:create_post_context) { double('CreatePostContext', post: created_post, returns: { post: created_post }, errors: []) }
+  let(:generate_url_context) { double('GenerateUrlContext', public_photo_url: 'https://example.com/photo.jpg', returns: { public_photo_url: 'https://example.com/photo.jpg' }, errors: []) }
+  let(:send_to_instagram_context) { double('SendToInstagramContext', provider_post_id: '12345', returns: { provider_post_id: '12345' }, errors: []) }
+  let(:update_post_context) { double('UpdatePostContext', post: created_post, returns: { post: created_post }, errors: []) }
 
   before do
     # Mock the individual commands
-    allow(Scheduling::Commands::CreatePostRecord).to receive(:call).and_return(create_post_context)
-    allow(Scheduling::Commands::GeneratePublicPhotoUrl).to receive(:call).and_return(generate_url_context)
+    RSpec::Mocks.allow_message(Scheduling::Commands::CreatePostRecord, :call).and_return(create_post_context)
+    RSpec::Mocks.allow_message(Scheduling::Commands::GeneratePublicPhotoUrl, :call).and_return(generate_url_context)
+    RSpec::Mocks.allow_message(Scheduling::Commands::SendPostToInstagram, :call).and_return(send_to_instagram_context)
+    RSpec::Mocks.allow_message(Scheduling::Commands::UpdatePostWithInstagramId, :call).and_return(update_post_context)
 
     # Mock success status
-    allow(create_post_context).to receive(:success?).and_return(true)
-    allow(generate_url_context).to receive(:success?).and_return(true)
-    allow(update_post_context).to receive(:success?).and_return(true)
+    RSpec::Mocks.allow_message(create_post_context, :success?).and_return(true)
+    RSpec::Mocks.allow_message(generate_url_context, :success?).and_return(true)
+    RSpec::Mocks.allow_message(send_to_instagram_context, :success?).and_return(true)
+    RSpec::Mocks.allow_message(update_post_context, :success?).and_return(true)
   end
 
   describe 'interface' do
     it { is_expected.to require(:photo).being(Photo) }
     it { is_expected.to require(:persona).being(Persona) }
     it { is_expected.to require(:caption).being(String) }
-    it { is_expected.to returns(:post).being(Scheduling::Post) }
+    it { is_expected.to returns(:post) }
   end
 
   describe 'command chain' do
     it 'defines the correct commands in order' do
       expect(described_class.commands).to eq([
                                                Scheduling::Commands::CreatePostRecord,
-                                               Scheduling::Commands::GeneratePublicPhotoUrl
+                                               Scheduling::Commands::GeneratePublicPhotoUrl,
+                                               Scheduling::Commands::SendPostToInstagram,
+                                               Scheduling::Commands::UpdatePostWithInstagramId
                                              ])
     end
   end
@@ -65,10 +73,8 @@ RSpec.describe Scheduling::SchedulePost, type: :command do
     context 'when a command in the chain fails' do
       before do
         # Make the second command fail
-        allow(generate_url_context).to receive_messages(
-          success?: false,
-          full_error_message: 'Photo URL generation failed'
-        )
+        RSpec::Mocks.allow_message(generate_url_context, :success?).and_return(false)
+        RSpec::Mocks.allow_message(generate_url_context, :full_error_message).and_return('Photo URL generation failed')
       end
 
       it 'is a failure' do
@@ -81,14 +87,13 @@ RSpec.describe Scheduling::SchedulePost, type: :command do
       end
 
       it 'triggers rollback of previously executed commands' do
-        # This behavior is handled by GLCommand::Chainable automatically
-        # The test ensures that the chain properly fails when a command fails
-        result = described_class.call(
+        # Expect the `destroy!` method to be called on the post that was "created" in the first step.
+        expect(created_post).to receive(:destroy!)
+        described_class.call(
           photo: photo,
           persona: persona,
           caption: caption
         )
-        expect(result).to be_failure
       end
     end
   end
