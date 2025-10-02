@@ -71,14 +71,6 @@ RSpec.describe Scheduling do
       result = described_class.schedule_post(photo: first_photo, persona: persona, caption: caption)
       expect(result).to be_a(GLCommand::Context)
     end
-
-    it 'returns a failed context since command chain is not implemented yet' do
-      result = described_class.schedule_post(photo: first_photo, persona: persona, caption: caption)
-      expect(result).to be_failure
-      expect(result.errors.full_messages).to include(
-        'Scheduling::Chain::SchedulePost command chain not yet implemented'
-      )
-    end
   end
 
   describe '.sync_post_statuses' do
