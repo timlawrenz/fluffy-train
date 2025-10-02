@@ -100,7 +100,8 @@ module Scheduling
             it 'calls the Instagram API with correct parameters' do
               described_class.call(persona: persona)
 
-              expect(Scheduling::Commands::GeneratePublicPhotoUrl).to have_received(:call).with(photo: higher_scored_photo)
+              expect(Scheduling::Commands::GeneratePublicPhotoUrl).to have_received(:call)
+                .with(photo: higher_scored_photo)
               expect(Scheduling::Commands::SendPostToInstagram).to have_received(:call).with(
                 public_photo_url: 'https://example.com/photo.jpg',
                 caption: described_class::STATIC_CAPTION,

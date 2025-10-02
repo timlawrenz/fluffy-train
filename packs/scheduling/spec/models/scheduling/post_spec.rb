@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Scheduling::Post, type: :model do
+RSpec.describe Scheduling::Post do
   describe 'associations' do
     it { is_expected.to belong_to(:photo).class_name('Photo') }
     it { is_expected.to belong_to(:persona).class_name('Persona') }
