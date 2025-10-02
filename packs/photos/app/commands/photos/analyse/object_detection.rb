@@ -7,12 +7,13 @@ module Photos
   module Analyse
     class ObjectDetection < GLCommand::Callable
       requires :photo
+      allows :llm_client
       returns :detected_objects
 
       def call
         validate_photo_file
 
-        objects = OllamaClient.detect_objects(file_path: photo.path)
+        objects = client.detect_objects(file_path: photo.path)
         validate_objects_response(objects)
 
         context.detected_objects = objects
@@ -23,6 +24,10 @@ module Photos
       end
 
       private
+
+      def client
+        context.llm_client || OllamaClient
+      end
 
       def validate_photo_file
         return if File.exist?(photo.path)

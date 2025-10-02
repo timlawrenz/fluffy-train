@@ -1,0 +1,1 @@
+bin/rspec --fail-fast && bin/packwerk check && bin/packwerk validate && bin/rubocop --fail-fast
