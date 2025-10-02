@@ -7,20 +7,9 @@ class BulkImportPhotos < GLCommand::Callable
   returns :imported_count
 
   def call
-    unless Dir.exist?(folder)
-      stop_and_fail!("Folder does not exist: #{folder}", no_notify: true)
-      return
-    end
-
+    context.imported_count = 0
     all_file_paths = Dir.glob(File.join(folder, '**', '*.{jpg,png}'), File::FNM_CASEFOLD)
-
-    if all_file_paths.empty?
-      context.imported_count = 0
-      return
-    end
-
     initial_count = Photo.count
-
     all_file_paths.each do |path|
       Photos::Import.call!(path: path, persona: persona)
     end
