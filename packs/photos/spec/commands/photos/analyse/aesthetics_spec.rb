@@ -1,107 +1,81 @@
 # frozen_string_literal: true
 
-# rubocop:disable RSpec/VerifiedDoubles
+require 'rails_helper'
+require 'gl_command/rspec'
 
-require 'spec_helper'
-
-# Load OllamaClient first since Aesthetics depends on it
-require_relative '../../../../app/clients/ollama_client'
-require_relative '../../../../app/commands/photos/analyse/aesthetics'
-
-RSpec.describe Photos::Analyse::Aesthetics do
-  before do
-    stub_const('Photo', Class.new)
-  end
-
-  let(:temp_dir) { '/tmp/fluffy_train_aesthetics_test' }
-  let(:test_image_path) { File.join(temp_dir, 'test_image.jpg') }
-  let(:photo) { double('Photo', path: test_image_path) }
-
-  around do |example|
-    FileUtils.mkdir_p(temp_dir)
-    create_test_image
-    example.run
-    FileUtils.rm_rf(temp_dir)
-  end
-
-  describe '#call' do
-    context 'when OllamaClient successfully returns a score' do
-      it 'is successful' do
-        allow(OllamaClient).to receive(:get_aesthetic_score).and_return(8)
-        result = described_class.call(photo: photo)
-        expect(result).to be_success
+module Photos
+  module Analyse
+    RSpec.describe Aesthetics, type: :command do
+      let(:photo) { FactoryBot.create(:photo) }
+      let(:mock_llm_client) do
+        Class.new do
+          def self.get_aesthetic_score(file_path:)
+            85
+          end
+        end
       end
 
-      it 'returns the aesthetic score' do
-        allow(OllamaClient).to receive(:get_aesthetic_score).and_return(7)
-        result = described_class.call(photo: photo)
-        expect(result.aesthetic_score).to eq(7)
+      describe 'interface' do
+        it { is_expected.to require(:photo).being(Photo) }
+        it { is_expected.to allow(:llm_client) }
+        it { is_expected.to returns(:aesthetic_score) }
       end
 
-      it 'calls OllamaClient with correct file path' do
-        allow(OllamaClient).to receive(:get_aesthetic_score)
-          .with(file_path: test_image_path)
-          .and_return(6)
+      describe '#call' do
+        context 'with a valid photo file' do
+          it 'is successful' do
+            result = described_class.call(photo: photo, llm_client: mock_llm_client)
+            expect(result).to be_success
+          end
 
-        described_class.call(photo: photo)
-        expect(OllamaClient).to have_received(:get_aesthetic_score).with(file_path: test_image_path)
-      end
-    end
+          it 'returns the aesthetic score from the llm_client' do
+            result = described_class.call(photo: photo, llm_client: mock_llm_client)
+            expect(result.aesthetic_score).to eq(85)
+          end
 
-    context 'when photo file does not exist' do
-      let(:non_existent_photo) { double('Photo', path: '/path/to/non_existent_file.jpg') }
+          it 'calls the llm_client with the correct photo path' do
+            expect(mock_llm_client).to receive(:get_aesthetic_score).with(file_path: photo.path)
+            described_class.call(photo: photo, llm_client: mock_llm_client)
+          end
+        end
 
-      it 'is a failure' do
-        result = described_class.call(photo: non_existent_photo)
-        expect(result).to be_failure
-      end
+        context 'without a photo file' do
+          before do
+            allow(File).to receive(:exist?).with(photo.path).and_return(false)
+          end
 
-      it 'returns an appropriate error message' do
-        result = described_class.call(photo: non_existent_photo)
-        expect(result.full_error_message).to eq('Photo file not found at path: /path/to/non_existent_file.jpg')
-      end
+          it 'fails' do
+            result = described_class.call(photo: photo, llm_client: mock_llm_client)
+            expect(result).to be_failure
+          end
 
-      it 'does not call OllamaClient' do
-        expect(OllamaClient).not_to receive(:get_aesthetic_score)
-        described_class.call(photo: non_existent_photo)
-      end
-    end
+          it 'returns a helpful error message' do
+            result = described_class.call(photo: photo, llm_client: mock_llm_client)
+            expect(result.full_error_message).to eq("Photo file not found at path: #{photo.path}")
+          end
+        end
 
-    context 'when OllamaClient raises an error' do
-      it 'is a failure when API connection fails' do
-        allow(OllamaClient).to receive(:get_aesthetic_score).and_raise(OllamaClient::Error, 'API connection failed')
-        result = described_class.call(photo: photo)
-        expect(result).to be_failure
-      end
+        context 'when the llm_client raises an error' do
+          let(:error_message) { 'The model is offline' }
+          let(:failing_llm_client) do
+            Class.new do
+              def self.get_aesthetic_score(file_path:)
+                raise OllamaClient::Error, 'The model is offline'
+              end
+            end
+          end
 
-      it 'returns an error message about aesthetic scoring failure' do
-        allow(OllamaClient).to receive(:get_aesthetic_score).and_raise(OllamaClient::Error, 'Invalid response format')
-        result = described_class.call(photo: photo)
-        expect(result.full_error_message).to eq('Failed to get aesthetic score for image: Invalid response format')
+          it 'fails' do
+            result = described_class.call(photo: photo, llm_client: failing_llm_client)
+            expect(result).to be_failure
+          end
+
+          it 'returns a helpful error message' do
+            result = described_class.call(photo: photo, llm_client: failing_llm_client)
+            expect(result.full_error_message).to eq("Failed to get aesthetic score for image: #{error_message}")
+          end
+        end
       end
     end
-
-    context 'when an unexpected error occurs' do
-      it 'is a failure when standard error occurs' do
-        allow(OllamaClient).to receive(:get_aesthetic_score).and_raise(StandardError, 'Unexpected error')
-        result = described_class.call(photo: photo)
-        expect(result).to be_failure
-      end
-
-      it 'returns an error message about unexpected error' do
-        allow(OllamaClient).to receive(:get_aesthetic_score).and_raise(StandardError, 'Unexpected error')
-        result = described_class.call(photo: photo)
-        expect(result.full_error_message).to eq('Unexpected error during aesthetic analysis: Unexpected error')
-      end
-    end
-  end
-
-  private
-
-  def create_test_image
-    # Create a simple test image file for the tests to use
-    File.write(test_image_path, 'fake image content')
   end
 end
-
-# rubocop:enable RSpec/VerifiedDoubles

@@ -6,13 +6,14 @@ require_relative '../../../clients/ollama_client'
 module Photos
   module Analyse
     class Aesthetics < GLCommand::Callable
-      requires :photo
+      requires photo: Photo
+      allows :llm_client
       returns :aesthetic_score
 
       def call
         validate_photo_file
 
-        score = OllamaClient.get_aesthetic_score(file_path: photo.path)
+        score = client.get_aesthetic_score(file_path: photo.path)
 
         context.aesthetic_score = score
       rescue OllamaClient::Error => e
@@ -22,6 +23,10 @@ module Photos
       end
 
       private
+
+      def client
+        context.llm_client || OllamaClient
+      end
 
       def validate_photo_file
         return if File.exist?(photo.path)
