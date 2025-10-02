@@ -15,7 +15,7 @@ module Scheduling
         end
 
         # Generate a permanent public URL (this may need to be adjusted based on ActiveStorage configuration)
-        context.public_photo_url = photo.image.url
+        context.public_photo_url = Rails.application.routes.url_helpers.url_for(photo.image)
       end
 
       # No rollback needed as this is a read-only operation

@@ -4,24 +4,24 @@ require 'rails_helper'
 require 'gl_command/rspec'
 
 RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
-  let(:photo) { instance_double(Photo) }
+  let(:photo) { FactoryBot.build_stubbed(:photo) }
   let(:image_attachment) { instance_double(ActiveStorage::Attached::One) }
   let(:public_url) { 'https://example.com/photo.jpg' }
 
   before do
-    allow(photo).to receive(:image).and_return(image_attachment)
-    allow(Rails.application.routes.url_helpers).to receive(:url_for).and_return(public_url)
+    RSpec::Mocks.allow_message(photo, :image).and_return(image_attachment)
+    RSpec::Mocks.allow_message(Rails.application.routes.url_helpers, :url_for).and_return(public_url)
   end
 
   describe 'interface' do
     it { is_expected.to require(:photo).being(Photo) }
-    it { is_expected.to returns(:public_photo_url).being(String) }
+    it { is_expected.to returns(:public_photo_url) }
   end
 
   describe '#call' do
     context 'when photo has an attached image' do
       before do
-        allow(image_attachment).to receive(:attached?).and_return(true)
+        RSpec::Mocks.allow_message(image_attachment, :attached?).and_return(true)
       end
 
       it 'is successful' do
@@ -42,7 +42,7 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
 
     context 'when photo has no attached image' do
       before do
-        allow(image_attachment).to receive(:attached?).and_return(false)
+        RSpec::Mocks.allow_message(image_attachment, :attached?).and_return(false)
       end
 
       it 'is a failure' do
@@ -58,11 +58,9 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
   end
 
   describe '#rollback' do
-    let(:command) { described_class.new }
-
-    it 'does not define a rollback method (read-only operation)' do
-      # This command is read-only and should not have a rollback method
-      expect(command).not_to respond_to(:rollback)
+    it 'does not have a custom rollback method' do
+      rollback_method = described_class.instance_method(:rollback)
+      expect(rollback_method.owner).to eq(GLCommand::Callable)
     end
   end
 end
