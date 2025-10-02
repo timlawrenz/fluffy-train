@@ -104,9 +104,11 @@ class OllamaClient
     raise Error, "API Error: #{response.status} - #{response.body}" unless response.success?
 
     response_body = response.body
-    raise Error, 'Empty response from Ollama API' if response_body.blank?
+    ollama_response = response_body['response']
+    raise Error, 'No response field in Ollama API response' if ollama_response.nil?
+    raise Error, 'Empty response from Ollama API' if ollama_response.blank?
 
-    JSON.parse(response_body['response'])['objects']
+    JSON.parse(ollama_response)['objects']
   end
 
   def handle_aesthetic_response(response)
