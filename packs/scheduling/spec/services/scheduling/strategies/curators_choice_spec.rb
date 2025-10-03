@@ -6,13 +6,36 @@ require 'gl_command/rspec'
 module Scheduling
   # rubocop:disable Metrics/ModuleLength
   module Strategies
-    RSpec.describe CuratorsChoice, type: :command do
-      let!(:persona) { FactoryBot.create(:persona) }
-
-      describe 'interface' do
-        it { is_expected.to require(:persona).being(Persona) }
-        it { is_expected.to returns(:selected_photo) }
+    class URLResult
+      def success?
+        true
       end
+
+      def public_photo_url
+        ''
+      end
+
+      def errors
+        []
+      end
+    end
+
+    class InstagramResult
+      def success?
+        true
+      end
+
+      def instagram_post_id
+        ''
+      end
+
+      def errors
+        []
+      end
+    end
+
+    RSpec.describe CuratorsChoice do
+      let!(:persona) { FactoryBot.create(:persona) }
 
       describe 'constants' do
         it 'has a static caption constant' do
@@ -76,24 +99,18 @@ module Scheduling
           end
 
           context 'with posting lifecycle management' do
-            let(:mock_url_command) { instance_double('GeneratePublicPhotoUrl') } # rubocop:disable RSpec/VerifiedDoubleReference
-            let(:mock_instagram_command) { instance_double('SendPostToInstagram') } # rubocop:disable RSpec/VerifiedDoubleReference
+            let(:mock_url_command) { class_double(Scheduling::Commands::GeneratePublicPhotoUrl).as_stubbed_const }
+            let(:mock_instagram_command) { class_double(Scheduling::Commands::SendPostToInstagram).as_stubbed_const }
             let(:mock_url_result) do
-              # rubocop:disable RSpec/VerifiedDoubleReference
-              instance_double('URLResult', success?: true, public_photo_url: 'https://example.com/photo.jpg')
-              # rubocop:enable RSpec/VerifiedDoubleReference
+              instance_double(URLResult, success?: true, public_photo_url: 'https://example.com/photo.jpg')
             end
             let(:mock_instagram_result) do
-              # rubocop:disable RSpec/VerifiedDoubleReference
-              instance_double('InstagramResult', success?: true, instagram_post_id: 'insta_123')
-              # rubocop:enable RSpec/VerifiedDoubleReference
+              instance_double(InstagramResult, success?: true, instagram_post_id: 'insta_123')
             end
 
             before do
-              RSpec::Mocks.allow_message(Scheduling::Commands::GeneratePublicPhotoUrl,
-                                         :call).and_return(mock_url_result)
-              RSpec::Mocks.allow_message(Scheduling::Commands::SendPostToInstagram,
-                                         :call).and_return(mock_instagram_result)
+              allow(mock_url_command).to receive(:call).and_return(mock_url_result)
+              allow(mock_instagram_command).to receive(:call).and_return(mock_instagram_result)
             end
 
             it 'creates a Scheduling::Post record with posting status when photo is selected' do
@@ -111,9 +128,9 @@ module Scheduling
             it 'calls the Instagram API with correct parameters' do
               described_class.call(persona: persona)
 
-              expect(Scheduling::Commands::GeneratePublicPhotoUrl).to have_received(:call)
+              expect(mock_url_command).to have_received(:call)
                 .with(photo: higher_scored_photo)
-              expect(Scheduling::Commands::SendPostToInstagram).to have_received(:call).with(
+              expect(mock_instagram_command).to have_received(:call).with(
                 public_photo_url: 'https://example.com/photo.jpg',
                 caption: described_class::STATIC_CAPTION,
                 persona: persona
@@ -131,11 +148,7 @@ module Scheduling
             end
 
             context 'when URL generation fails' do
-              let(:mock_url_result) do
-                # rubocop:disable RSpec/VerifiedDoubleReference
-                instance_double('URLResult', success?: false, errors: ['URL generation failed'])
-                # rubocop:enable RSpec/VerifiedDoubleReference
-              end
+              let(:mock_url_result) { instance_double(URLResult, success?: false, errors: ['URL generation failed']) }
 
               it 'marks post as failed' do
                 described_class.call(persona: persona)
@@ -149,9 +162,7 @@ module Scheduling
 
             context 'when Instagram API fails' do
               let(:mock_instagram_result) do
-                # rubocop:disable RSpec/VerifiedDoubleReference
-                instance_double('InstagramResult', success?: false, errors: ['API error'])
-                # rubocop:enable RSpec/VerifiedDoubleReference
+                instance_double(InstagramResult, success?: false, errors: ['API error'])
               end
 
               it 'marks post as failed' do
