@@ -11,10 +11,7 @@ class BulkImportPhotos < GLCommand::Callable
     all_file_paths = Dir.glob(File.join(folder, '**', '*.{jpg,png}'), File::FNM_CASEFOLD)
     initial_count = Photo.count
     all_file_paths.each do |path|
-      filename = File.basename(path)
-      # Skip if a photo with the same filename already exists for this persona
-      next if persona.photos.joins(image_attachment: :blob).where(active_storage_blobs: { filename: filename }).exists?
-
+      puts "Importing #{path}"
       Photos::Import.call!(path: path, persona: persona)
     end
 
