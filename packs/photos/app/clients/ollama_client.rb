@@ -6,6 +6,7 @@ require 'json'
 require 'base64'
 
 # A client for the Ollama API.
+# rubocop:disable Metrics/ClassLength
 class OllamaClient
   # Custom error class for API-specific issues.
   class Error < StandardError; end
@@ -26,6 +27,15 @@ class OllamaClient
   # @raise [OllamaClient::Error] if the API returns an error or the request fails.
   def self.get_aesthetic_score(file_path:)
     new(file_path: file_path).send(:aesthetic_score)
+  end
+
+  # Generates a caption for an image using Ollama.
+  #
+  # @param file_path [String] The absolute path to the image file.
+  # @return [String] Generated caption suitable for Instagram.
+  # @raise [OllamaClient::Error] if the API returns an error or the request fails.
+  def self.generate_caption(file_path:)
+    new(file_path: file_path).send(:generate_caption)
   end
 
   private
@@ -76,6 +86,22 @@ class OllamaClient
   rescue Faraday::Error => e
     raise Error, "Request failed: #{e.message}"
   end
+
+  def generate_caption
+    encoded_image = encode_image
+    response = connection.post('/api/generate') do |req|
+      req.body = {
+        model: 'llava:latest',
+        prompt: caption_generation_prompt,
+        images: [encoded_image],
+        stream: false
+      }
+    end
+
+    handle_caption_response(response)
+  rescue Faraday::Error => e
+    raise Error, "Request failed: #{e.message}"
+  end
   # rubocop:enable Metrics/MethodLength
 
   def encode_image
@@ -98,6 +124,10 @@ class OllamaClient
       'where 1 is poor aesthetic quality and 10 is excellent aesthetic quality. ' \
       'Consider factors like composition, lighting, color harmony, visual balance, and overall appeal. ' \
       'Respond with only a single number between 1 and 10.'
+  end
+
+  def caption_generation_prompt
+    'Generate a short, engaging caption for this image, suitable for Instagram.'
   end
 
   def handle_response(response)
@@ -123,6 +153,21 @@ class OllamaClient
     parse_aesthetic_score_from_response(ollama_response)
   end
 
+  def handle_caption_response(response)
+    raise Error, "API Error: #{response.status} - #{response.body}" unless response.success?
+
+    response_body = response.body
+    raise Error, 'Empty response from Ollama API' if response_body.blank?
+
+    ollama_response = response_body['response']
+    raise Error, 'No response field in Ollama API response' if ollama_response.nil?
+
+    # Check if response is empty or contains only whitespace
+    raise Error, 'Empty caption response from Ollama API' if ollama_response.blank? || ollama_response.strip.empty?
+
+    ollama_response.strip
+  end
+
   def parse_aesthetic_score_from_response(response_text)
     # Extract numeric score from response text
     # Handle various possible formats like "8", "Score: 7", "The aesthetic score is 6", etc.
@@ -136,3 +181,4 @@ class OllamaClient
     valid_score
   end
 end
+# rubocop:enable Metrics/ClassLength
