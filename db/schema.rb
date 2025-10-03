@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_26_002946) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_03_173824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -56,6 +56,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_26_002946) do
     t.float "exposure_score"
     t.float "aesthetic_score"
     t.jsonb "detected_objects"
+    t.text "caption"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["photo_id"], name: "index_photo_analyses_on_photo_id"
