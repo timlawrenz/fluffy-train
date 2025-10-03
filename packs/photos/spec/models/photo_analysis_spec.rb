@@ -50,5 +50,18 @@ RSpec.describe PhotoAnalysis do
       photo_analysis.save!
       expect(photo_analysis.reload.detected_objects).to eq(objects)
     end
+
+    it 'can store caption as text' do
+      caption = 'A beautiful sunset over the mountains'
+      photo_analysis.caption = caption
+      photo_analysis.save!
+      expect(photo_analysis.reload.caption).to eq(caption)
+    end
+
+    it 'allows caption to be null' do
+      photo_analysis.caption = nil
+      photo_analysis.save!
+      expect(photo_analysis.reload.caption).to be_nil
+    end
   end
 end
