@@ -20,14 +20,17 @@ module Photos
       private
 
       def create_photo_analysis
-        photo_analysis = PhotoAnalysis.create!(
-          photo: photo,
+        # Use existing photo_analysis if it exists (e.g., from Caption command), otherwise create new
+        photo_analysis = photo.photo_analysis || PhotoAnalysis.new(photo: photo)
+
+        photo_analysis.assign_attributes(
           sharpness_score: sharpness_score,
           exposure_score: exposure_score,
           aesthetic_score: aesthetic_score,
           detected_objects: detected_objects
         )
 
+        photo_analysis.save!
         context.photo_analysis = photo_analysis
       end
 
