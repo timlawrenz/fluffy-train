@@ -8,9 +8,6 @@ module Scheduling
       requires persona: Persona
       returns :selected_photo
 
-      # Static caption for all automated posts
-      STATIC_CAPTION = 'Fresh from the studio! Another masterpiece ready to inspire. #photography #art #creative'
-
       def call
         photo = find_highest_rated_unposted_photo
 
@@ -62,7 +59,7 @@ module Scheduling
         Scheduling::Post.create(
           photo: photo,
           persona: persona,
-          caption: STATIC_CAPTION,
+          caption: photo.photo_analysis&.caption,
           status: 'posting'
         )
       end
@@ -81,7 +78,7 @@ module Scheduling
       end
 
       def post_to_instagram(post, photo, public_photo_url)
-        instagram_result = send_to_instagram(public_photo_url)
+        instagram_result = send_to_instagram(post, public_photo_url)
 
         if instagram_result.success?
           update_post_as_posted(post, instagram_result.instagram_post_id)
@@ -107,10 +104,10 @@ module Scheduling
         Scheduling::Commands::GeneratePublicPhotoUrl.call(photo: photo)
       end
 
-      def send_to_instagram(public_photo_url)
+      def send_to_instagram(post, public_photo_url)
         Scheduling::Commands::SendPostToInstagram.call(
           public_photo_url: public_photo_url,
-          caption: STATIC_CAPTION,
+          caption: post.caption,
           persona: persona
         )
       end
