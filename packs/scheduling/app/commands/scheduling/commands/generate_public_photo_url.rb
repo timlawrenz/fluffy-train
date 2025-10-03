@@ -14,8 +14,9 @@ module Scheduling
           return
         end
 
-        # Generate a permanent public URL (this may need to be adjusted based on ActiveStorage configuration)
-        context.public_photo_url = Rails.application.routes.url_helpers.url_for(photo.image)
+        # Generate a permanent public URL. As the storage is configured with `public: true`,
+        # this will return the direct URL to the file on the S3-compatible service.
+        context.public_photo_url = photo.image.url
       end
 
       # No rollback needed as this is a read-only operation
