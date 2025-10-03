@@ -5,6 +5,7 @@ require_relative 'analyse/sharpness'
 require_relative 'analyse/exposure'
 require_relative 'analyse/aesthetics'
 require_relative 'analyse/object_detection'
+require_relative 'analyse/caption'
 require_relative 'analyse/save_results'
 
 module Photos
@@ -16,6 +17,7 @@ module Photos
           Photos::Analyse::Exposure,
           Photos::Analyse::Aesthetics,
           Photos::Analyse::ObjectDetection,
+          Photos::Analyse::Caption,
           Photos::Analyse::SaveResults
   end
 end

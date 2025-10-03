@@ -90,6 +90,7 @@ RSpec.describe 'Photos::Import Integration', type: :integration do
           mock_photo_analysis.instance_variable_set(:@detected_objects, [
                                                       { 'label' => 'cat', 'confidence' => 0.95 }
                                                     ])
+          mock_photo_analysis.instance_variable_set(:@caption, 'A beautiful photo of a cat in nature')
 
           # Mock accessor methods
           def mock_photo_analysis.sharpness_score = @sharpness_score
@@ -97,6 +98,7 @@ RSpec.describe 'Photos::Import Integration', type: :integration do
           def mock_photo_analysis.aesthetic_score = @aesthetic_score
           def mock_photo_analysis.detected_objects = @detected_objects
           def mock_photo_analysis.photo = @photo
+          def mock_photo_analysis.caption = @caption
 
           def mock_photo_analysis.photo=(p)
             @photo = p
@@ -151,6 +153,11 @@ RSpec.describe 'Photos::Import Integration', type: :integration do
       expect(result.photo_analysis.detected_objects).to all(
         include('label' => be_a(String), 'confidence' => be_a(Numeric))
       )
+
+      # AC Caption: Caption is present on the photo_analysis record after import
+      expect(result.photo_analysis.caption).to be_present
+      expect(result.photo_analysis.caption).to be_a(String)
+      expect(result.photo_analysis.caption).to eq('A beautiful photo of a cat in nature')
 
       # AC6: Process triggered with local file path
       expect(result.photo.path).to eq(test_image_path)
