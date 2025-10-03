@@ -28,6 +28,22 @@ RSpec.describe OllamaClient do
     end
   end
 
+  shared_context 'with successful caption response' do
+    let(:caption_response_body) do
+      {
+        response: 'A beautiful sunset over the ocean with vibrant colors.'
+      }.to_json
+    end
+
+    before do
+      stub_request(:post, api_url).to_return(
+        status: 200,
+        body: caption_response_body,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+    end
+  end
+
   describe '.detect_objects' do
     context 'with successful API response' do
       include_context 'with successful API response'
@@ -111,6 +127,123 @@ RSpec.describe OllamaClient do
         expect do
           described_class.detect_objects(file_path: test_image_path)
         end.to raise_error(JSON::ParserError)
+      end
+    end
+  end
+
+  describe '.generate_caption' do
+    context 'with successful API response' do
+      include_context 'with successful caption response'
+
+      it 'returns generated caption successfully' do
+        result = described_class.generate_caption(file_path: test_image_path)
+        expect(result).to eq('A beautiful sunset over the ocean with vibrant colors.')
+      end
+
+      it 'sends correct request to Ollama API' do
+        described_class.generate_caption(file_path: test_image_path)
+        expect(WebMock).to have_requested(:post, api_url).with { |req|
+          body = JSON.parse(req.body)
+          expect(body['model']).to eq('llava:latest')
+          expect(body['prompt']).to eq('Generate a short, engaging caption for this image, suitable for Instagram.')
+          expect(body['images']).to be_an(Array)
+          expect(body['stream']).to be(false)
+          expect(body['format']).to be_nil # caption generation doesn't use JSON format
+        }.once
+      end
+    end
+
+    context 'when API returns an error' do
+      before do
+        stub_request(:post, api_url).to_return(status: 500, body: { error: 'Internal Server Error' }.to_json)
+      end
+
+      it 'raises an OllamaClient::Error' do
+        expect do
+          described_class.generate_caption(file_path: test_image_path)
+        end.to raise_error(OllamaClient::Error, /API Error: 500/)
+      end
+    end
+
+    context 'when API response has no response field' do
+      before do
+        stub_request(:post, api_url).to_return(status: 200, body: {}.to_json)
+      end
+
+      it 'raises an error' do
+        expect do
+          described_class.generate_caption(file_path: test_image_path)
+        end.to raise_error(OllamaClient::Error, /No response field in Ollama API response/)
+      end
+    end
+
+    context 'when response field is empty' do
+      before do
+        # Clear all stubs and create a new specific one
+        WebMock.reset!
+        stub_request(:post, api_url).to_return(
+          status: 200, 
+          body: { response: '' }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+      end
+
+      it 'raises an error' do
+        expect do
+          described_class.generate_caption(file_path: test_image_path)
+        end.to raise_error(OllamaClient::Error, /Empty caption response from Ollama API/)
+      end
+    end
+
+    context 'when response field contains only whitespace' do
+      before do
+        # Clear all stubs and create a new specific one
+        WebMock.reset!
+        stub_request(:post, api_url).to_return(
+          status: 200, 
+          body: { response: "   \n  " }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+      end
+
+      it 'raises an error' do
+        expect do
+          described_class.generate_caption(file_path: test_image_path)
+        end.to raise_error(OllamaClient::Error, /Empty caption response from Ollama API/)
+      end
+    end
+
+    context 'when API response body is empty' do
+      before do
+        stub_request(:post, api_url).to_return(status: 200, body: '')
+      end
+
+      it 'raises an error' do
+        expect do
+          described_class.generate_caption(file_path: test_image_path)
+        end.to raise_error(OllamaClient::Error, /Empty response from Ollama API/)
+      end
+    end
+
+    context 'when network request fails' do
+      before do
+        stub_request(:post, api_url).to_raise(Faraday::ConnectionFailed.new('Connection failed'))
+      end
+
+      it 'raises an OllamaClient::Error' do
+        expect do
+          described_class.generate_caption(file_path: test_image_path)
+        end.to raise_error(OllamaClient::Error, /Request failed: Connection failed/)
+      end
+    end
+
+    context 'when image file does not exist' do
+      let(:non_existent_path) { '/path/to/non/existent/image.jpg' }
+
+      it 'raises an error about missing file' do
+        expect do
+          described_class.generate_caption(file_path: non_existent_path)
+        end.to raise_error(OllamaClient::Error, /Image file not found/)
       end
     end
   end
