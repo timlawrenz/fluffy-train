@@ -4,6 +4,7 @@ require 'rails_helper'
 require 'gl_command/rspec'
 
 module Scheduling
+  # rubocop:disable Metrics/ModuleLength
   module Strategies
     class URLResult
       def success?
@@ -178,4 +179,5 @@ module Scheduling
       end
     end
   end
+  # rubocop:enable Metrics/ModuleLength
 end
