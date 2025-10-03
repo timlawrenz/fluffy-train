@@ -5,6 +5,7 @@ require 'spec_helper'
 # Mock Rails environment for the Rake task testing
 ENV['RAILS_ENV'] = 'test'
 
+# rubocop:disable RSpec/DescribeClass
 RSpec.describe 'scheduling:post_next_best Rake Task Integration', type: :integration do
   # This integration test verifies the Rake task behavior by testing the interface
   # and expected outcomes without requiring full database setup
@@ -326,6 +327,7 @@ RSpec.describe 'scheduling:post_next_best Rake Task Integration', type: :integra
   end
 
   # Helper method to capture stdout and exit status
+  # rubocop:disable Metrics/MethodLength
   def capture_stdout_and_exit_status
     original_stdout = $stdout
     $stdout = StringIO.new
@@ -342,4 +344,6 @@ RSpec.describe 'scheduling:post_next_best Rake Task Integration', type: :integra
 
     [output, status]
   end
+  # rubocop:enable Metrics/MethodLength
 end
+# rubocop:enable RSpec/DescribeClass
