@@ -5,6 +5,34 @@ require 'gl_command/rspec'
 
 module Scheduling
   module Strategies
+    class URLResult
+      def success?
+        true
+      end
+
+      def public_photo_url
+        ''
+      end
+
+      def errors
+        []
+      end
+    end
+
+    class InstagramResult
+      def success?
+        true
+      end
+
+      def instagram_post_id
+        ''
+      end
+
+      def errors
+        []
+      end
+    end
+
     RSpec.describe CuratorsChoice do
       let!(:persona) { FactoryBot.create(:persona) }
 
@@ -72,8 +100,12 @@ module Scheduling
           context 'with posting lifecycle management' do
             let(:mock_url_command) { class_double(Scheduling::Commands::GeneratePublicPhotoUrl).as_stubbed_const }
             let(:mock_instagram_command) { class_double(Scheduling::Commands::SendPostToInstagram).as_stubbed_const }
-            let(:mock_url_result) { instance_double('URLResult', success?: true, public_photo_url: 'https://example.com/photo.jpg') }
-            let(:mock_instagram_result) { instance_double('InstagramResult', success?: true, instagram_post_id: 'insta_123') }
+            let(:mock_url_result) do
+              instance_double(URLResult, success?: true, public_photo_url: 'https://example.com/photo.jpg')
+            end
+            let(:mock_instagram_result) do
+              instance_double(InstagramResult, success?: true, instagram_post_id: 'insta_123')
+            end
 
             before do
               allow(mock_url_command).to receive(:call).and_return(mock_url_result)
@@ -115,7 +147,7 @@ module Scheduling
             end
 
             context 'when URL generation fails' do
-              let(:mock_url_result) { instance_double('URLResult', success?: false, errors: ['URL generation failed']) }
+              let(:mock_url_result) { instance_double(URLResult, success?: false, errors: ['URL generation failed']) }
 
               it 'marks post as failed' do
                 described_class.call(persona: persona)
@@ -128,7 +160,9 @@ module Scheduling
             end
 
             context 'when Instagram API fails' do
-              let(:mock_instagram_result) { instance_double('InstagramResult', success?: false, errors: ['API error']) }
+              let(:mock_instagram_result) do
+                instance_double(InstagramResult, success?: false, errors: ['API error'])
+              end
 
               it 'marks post as failed' do
                 described_class.call(persona: persona)
