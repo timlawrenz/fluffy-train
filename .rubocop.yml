@@ -68,5 +68,10 @@ RSpec/MultipleMemoizedHelpers:
 RSpec/SubjectStub:
   Enabled: false
 
+Metrics/ModuleLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*.rb'
+
 FactoryBot/SyntaxMethods:
   Enabled: false
