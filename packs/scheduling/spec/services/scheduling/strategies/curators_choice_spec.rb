@@ -36,13 +36,6 @@ module Scheduling
     RSpec.describe CuratorsChoice do
       let!(:persona) { FactoryBot.create(:persona) }
 
-      describe 'constants' do
-        it 'has a static caption constant' do
-          expect(described_class::STATIC_CAPTION).to be_a(String)
-          expect(described_class::STATIC_CAPTION).not_to be_empty
-        end
-      end
-
       describe '#call' do
         context 'when no photos exist' do
           it 'returns nil and logs a warning' do
@@ -86,8 +79,10 @@ module Scheduling
           let!(:higher_scored_photo) { FactoryBot.create(:photo, persona: persona) }
 
           before do
-            FactoryBot.create(:photo_analysis, photo: lower_scored_photo, aesthetic_score: 7.5)
-            FactoryBot.create(:photo_analysis, photo: higher_scored_photo, aesthetic_score: 9.0)
+            FactoryBot.create(:photo_analysis, photo: lower_scored_photo, aesthetic_score: 7.5,
+                                               caption: 'Lower scored photo caption')
+            FactoryBot.create(:photo_analysis, photo: higher_scored_photo, aesthetic_score: 9.0,
+                                               caption: 'Higher scored photo caption')
           end
 
           it 'returns the photo with the highest aesthetic score' do
@@ -121,7 +116,7 @@ module Scheduling
               expect(post.photo).to eq(higher_scored_photo)
               expect(post.persona).to eq(persona)
               expect(post.status).to eq('posted') # After successful posting
-              expect(post.caption).to eq(described_class::STATIC_CAPTION)
+              expect(post.caption).to eq('Higher scored photo caption')
             end
 
             it 'calls the Instagram API with correct parameters' do
@@ -131,7 +126,7 @@ module Scheduling
                 .with(photo: higher_scored_photo)
               expect(mock_instagram_command).to have_received(:call).with(
                 public_photo_url: 'https://example.com/photo.jpg',
-                caption: described_class::STATIC_CAPTION,
+                caption: 'Higher scored photo caption',
                 persona: persona
               )
             end
@@ -171,6 +166,32 @@ module Scheduling
                 expect(post.status).to eq('failed')
                 expect(post.provider_post_id).to be_nil
                 expect(post.posted_at).to be_nil
+              end
+            end
+
+            context 'when photo has no caption' do
+              before do
+                # Create photo analysis without caption
+                higher_scored_photo.photo_analysis.update!(caption: nil)
+              end
+
+              it 'creates a Scheduling::Post record with nil caption' do
+                expect do
+                  described_class.call(persona: persona)
+                end.to change(Scheduling::Post, :count).by(1)
+
+                post = Scheduling::Post.last
+                expect(post.caption).to be_nil
+              end
+
+              it 'calls the Instagram API with nil caption' do
+                described_class.call(persona: persona)
+
+                expect(mock_instagram_command).to have_received(:call).with(
+                  public_photo_url: 'https://example.com/photo.jpg',
+                  caption: nil,
+                  persona: persona
+                )
               end
             end
           end
