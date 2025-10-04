@@ -95,4 +95,4 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: "postgres://postgres:password@localhost:5432/fluffy-train_test"
-        run: bin/rspec
+        run: bin/rspec packs
