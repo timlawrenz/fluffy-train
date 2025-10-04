@@ -45,5 +45,27 @@ RSpec.describe Cluster do
 
       expect(photo.cluster).to be_nil
     end
+
+    it 'updates photos_count when photos are added or removed' do
+      cluster = FactoryBot.create(:cluster)
+
+      expect(cluster.photos_count).to eq(0)
+
+      photo1 = FactoryBot.create(:photo, cluster: cluster)
+      cluster.reload
+      expect(cluster.photos_count).to eq(1)
+
+      photo2 = FactoryBot.create(:photo, cluster: cluster)
+      cluster.reload
+      expect(cluster.photos_count).to eq(2)
+
+      photo1.destroy
+      cluster.reload
+      expect(cluster.photos_count).to eq(1)
+
+      photo2.update!(cluster: nil)
+      cluster.reload
+      expect(cluster.photos_count).to eq(0)
+    end
   end
 end
