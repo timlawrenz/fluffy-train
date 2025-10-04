@@ -22,12 +22,14 @@ default: &default
 
 development:
   primary:
+    <<: *default
     database: fluffy_train_development
     username: postgres
     password: password
     host: localhost
     port: 5432
   queue:
+    <<: *default
     database: fluffy_train_development_queue
     username: postgres
     password: password

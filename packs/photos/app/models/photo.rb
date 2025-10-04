@@ -6,6 +6,7 @@ class Photo < ApplicationRecord
   has_one :photo_analysis, dependent: :destroy
 
   belongs_to :persona
+  belongs_to :cluster, optional: true
 
   validates :path, presence: true, uniqueness: true
 end
