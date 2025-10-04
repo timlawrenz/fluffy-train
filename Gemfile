@@ -16,6 +16,7 @@ gem 'tailwindcss-rails'
 gem 'turbo-rails'
 
 gem 'neighbor'
+gem 'rumale'
 
 gem 'faraday', '~> 2.7'
 gem 'faraday-multipart'
