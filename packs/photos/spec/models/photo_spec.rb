@@ -13,6 +13,12 @@ RSpec.describe Photo do
       expect(association).to be_a(ActiveRecord::Reflection::HasOneReflection)
       expect(association.options[:dependent]).to eq(:destroy)
     end
+
+    it 'belongs to a cluster optionally' do
+      association = described_class.reflect_on_association(:cluster)
+      expect(association).to be_a(ActiveRecord::Reflection::BelongsToReflection)
+      expect(association.options[:optional]).to eq(true)
+    end
   end
 
   describe 'validations' do
