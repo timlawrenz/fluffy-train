@@ -36,16 +36,13 @@ module Photos
       Numo::DFloat.cast(matrix_data)
     end
 
-    def perform_clustering(embeddings_matrix)
-      # Adjust k_clusters if we have fewer photos than requested clusters
-      actual_k = [k_clusters, embeddings_matrix.shape[0]].min
-
+    def perform_clustering(embeddings_matrix, actual_k)
       kmeans = Rumale::Clustering::KMeans.new(n_clusters: actual_k, random_seed: 42)
       kmeans.fit_predict(embeddings_matrix)
     end
 
-    def create_clusters
-      (0...k_clusters).map do |cluster_index|
+    def create_clusters(actual_k)
+      (0...actual_k).map do |cluster_index|
         Cluster.create!(
           name: "Cluster #{cluster_index + 1}",
           status: 0 # active status
@@ -66,22 +63,23 @@ module Photos
 
     def perform_clustering_workflow(photos_to_cluster)
       embeddings_matrix = build_embeddings_matrix(photos_to_cluster)
-      cluster_labels = perform_clustering(embeddings_matrix)
+      actual_k = [k_clusters, embeddings_matrix.shape[0]].min
+      cluster_labels = perform_clustering(embeddings_matrix, actual_k)
 
       ActiveRecord::Base.transaction do
-        clusters = create_clusters
+        clusters = create_clusters(actual_k)
         assign_photos_to_clusters(photos_to_cluster, cluster_labels, clusters)
       end
 
-      success_result(photos_to_cluster.length)
+      success_result(photos_to_cluster.length, actual_k)
     end
 
-    def success_result(photos_processed)
+    def success_result(photos_processed, actual_clusters_created)
       {
         success: true,
-        message: "Successfully clustered #{photos_processed} photos into #{@k_clusters} clusters",
+        message: "Successfully clustered #{photos_processed} photos into #{actual_clusters_created} clusters",
         photos_processed: photos_processed,
-        clusters_created: @k_clusters
+        clusters_created: actual_clusters_created
       }
     end
 

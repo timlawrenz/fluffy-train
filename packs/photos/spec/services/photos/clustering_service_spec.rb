@@ -123,8 +123,8 @@ RSpec.describe Photos::ClusteringService do
 
         expect(result[:success]).to be true
         expect(result[:photos_processed]).to eq(2)
-        # Should create 5 clusters as requested, even if some might be empty
-        expect(result[:clusters_created]).to eq(5)
+        # Should create only 2 clusters when there are only 2 photos, not 5
+        expect(result[:clusters_created]).to eq(2)
       end
     end
 
