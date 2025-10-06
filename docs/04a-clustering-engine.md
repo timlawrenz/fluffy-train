@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # Tech Spec: Core Clustering Engine
 
 This document outlines the technical approach for implementing the Core Clustering Engine, as defined in Milestone 4a of the product roadmap.

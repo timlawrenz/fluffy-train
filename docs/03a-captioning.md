@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # PRD: Automated Caption Generation
 
 *   **Author**: Gemini CLI

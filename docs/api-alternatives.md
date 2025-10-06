@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # Tech Spec: Social Media API Alternatives & Strategy Pivot
 
 **Status:** Proposed

@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # Tech Spec: Automated Posting Engine & Basic Scheduling
 
 This document outlines the technical implementation details for Milestone 3, which focuses on creating a fully automated posting engine.

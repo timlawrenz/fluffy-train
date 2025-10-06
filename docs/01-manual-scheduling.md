@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # Tech Spec: Foundational Setup & Manual Scheduling
 
 **Status:** Approved

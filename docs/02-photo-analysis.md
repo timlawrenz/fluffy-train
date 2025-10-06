@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # PRD: Milestone 2 - Advanced Photo Analysis & Quality Control
 
 ## 1. Overview & Goal

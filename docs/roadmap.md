@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: active
+---
+
 # fluffy-train: Product Roadmap
 
 This document outlines the development roadmap for `fluffy-train`, a project designed to automate and optimize Instagram content posting using machine learning and generative AI. The roadmap is divided into distinct milestones, each delivering a complete, valuable feature that builds upon the previous one.

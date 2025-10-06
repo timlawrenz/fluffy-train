@@ -1,3 +1,8 @@
+---
+project: fluffy-train
+status: done
+---
+
 # PRD: Foundational Setup & Manual Scheduling
 
 **Status:** Inception
