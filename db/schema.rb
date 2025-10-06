@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_03_173824) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_04_143549) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -43,6 +43,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_03_173824) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "clusters", force: :cascade do |t|
+    t.string "name"
+    t.integer "status", default: 0
+    t.integer "photos_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "personas", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -68,6 +76,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_03_173824) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.vector "embedding", limit: 512
+    t.bigint "cluster_id"
+    t.index ["cluster_id"], name: "index_photos_on_cluster_id"
     t.index ["path"], name: "index_photos_on_path", unique: true
     t.index ["persona_id"], name: "index_photos_on_persona_id"
   end
@@ -169,6 +179,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_03_173824) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "photo_analyses", "photos"
+  add_foreign_key "photos", "clusters"
   add_foreign_key "photos", "personas"
   add_foreign_key "scheduling_posts", "personas"
   add_foreign_key "scheduling_posts", "photos"
