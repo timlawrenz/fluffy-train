@@ -14,7 +14,8 @@ module Photos
       rescue ActiveRecord::RecordInvalid => e
         stop_and_fail!("Failed to save photo analysis: #{e.message}")
       rescue StandardError => e
-        stop_and_fail!("Unexpected error while saving photo analysis: #{e.message}")
+        context.errors.add(:base, e.message)
+        context.fail!
       end
 
       private

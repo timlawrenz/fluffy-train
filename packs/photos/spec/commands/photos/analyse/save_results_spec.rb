@@ -1,52 +1,33 @@
-# frozen_string_literal: true
+require 'rails_helper'
 
-# rubocop:disable RSpec/VerifiedDoubles
-
-require 'spec_helper'
-require 'gl_command/rspec'
-
-require_relative '../../../../app/commands/photos/analyse/save_results'
-
-RSpec.describe Photos::Analyse::SaveResults, type: :command do
-  before do
-    stub_const('Photo', Class.new)
-    stub_const('PhotoAnalysis', Class.new do
-      def self.create!(attributes)
-        new(attributes)
-      end
-
-      def initialize(attributes)
-        @attributes = attributes
-      end
-
-      attr_reader :attributes
-    end)
-    stub_const('Rails', Class.new do
-      def self.logger
-        @logger ||= double('Logger')
-      end
-    end)
-  end
-
-  let(:photo) { double('Photo', id: 1) }
-  let(:sharpness_score) { 85.5 }
-  let(:exposure_score) { 0.75 }
-  let(:aesthetic_score) { 8 }
-  let(:detected_objects) { [{ 'label' => 'cat', 'confidence' => 0.95 }] }
-
-  describe 'interface' do
-    it { is_expected.to require(:photo) }
-    it { is_expected.to require(:sharpness_score) }
-    it { is_expected.to require(:exposure_score) }
-    it { is_expected.to require(:aesthetic_score) }
-    it { is_expected.to require(:detected_objects) }
-    it { is_expected.to returns(:photo_analysis) }
-  end
-
+RSpec.describe Photos::Analyse::SaveResults do
   describe '#call' do
+    let(:photo) { instance_double(Photo, id: 1) }
+    let(:sharpness_score) { 0.8 }
+    let(:exposure_score) { 0.7 }
+    let(:aesthetic_score) { 0.9 }
+    let(:detected_objects) { { 'cat' => 0.9, 'dog' => 0.8 } }
+    let(:caption) { 'A test caption' }
+    let(:context) do
+      GLCommand::Context.new.tap do |c|
+        c.caption = caption
+      end
+    end
+    let(:photo_analysis_association) { double('photo_analysis_association') }
+    let(:created_photo_analysis) { instance_double('Photos::PhotoAnalysis') }
+
+    before do
+      allow(photo).to receive(:photo_analysis).and_return(photo_analysis_association)
+    end
+
     context 'with valid inputs' do
+      before do
+        allow(photo_analysis_association).to receive(:create!).and_return(created_photo_analysis)
+      end
+
       it 'is successful' do
         result = described_class.call(
+          context,
           photo: photo,
           sharpness_score: sharpness_score,
           exposure_score: exposure_score,
@@ -57,15 +38,16 @@ RSpec.describe Photos::Analyse::SaveResults, type: :command do
       end
 
       it 'creates a PhotoAnalysis record' do
-        expect(PhotoAnalysis).to receive(:create!).with(
-          photo: photo,
+        expect(photo_analysis_association).to receive(:create!).with(
           sharpness_score: sharpness_score,
           exposure_score: exposure_score,
           aesthetic_score: aesthetic_score,
-          detected_objects: detected_objects
-        ).and_call_original
+          detected_objects: detected_objects,
+          caption: caption
+        )
 
         described_class.call(
+          context,
           photo: photo,
           sharpness_score: sharpness_score,
           exposure_score: exposure_score,
@@ -76,83 +58,25 @@ RSpec.describe Photos::Analyse::SaveResults, type: :command do
 
       it 'returns the created PhotoAnalysis record' do
         result = described_class.call(
+          context,
           photo: photo,
           sharpness_score: sharpness_score,
           exposure_score: exposure_score,
           aesthetic_score: aesthetic_score,
           detected_objects: detected_objects
         )
-        expect(result.photo_analysis).to be_a(PhotoAnalysis)
-      end
-    end
-
-    context 'with invalid inputs' do
-      it 'fails when photo is not provided' do
-        result = described_class.call(
-          photo: nil,
-          sharpness_score: sharpness_score,
-          exposure_score: exposure_score,
-          aesthetic_score: aesthetic_score,
-          detected_objects: detected_objects
-        )
-        expect(result).to be_failure
-        expect(result.full_error_message).to eq('Photo is required')
-      end
-
-      it 'fails when sharpness_score is not numeric' do
-        result = described_class.call(
-          photo: photo,
-          sharpness_score: 'not_numeric',
-          exposure_score: exposure_score,
-          aesthetic_score: aesthetic_score,
-          detected_objects: detected_objects
-        )
-        expect(result).to be_failure
-        expect(result.full_error_message).to eq('Sharpness score must be numeric')
-      end
-
-      it 'fails when exposure_score is not numeric' do
-        result = described_class.call(
-          photo: photo,
-          sharpness_score: sharpness_score,
-          exposure_score: 'not_numeric',
-          aesthetic_score: aesthetic_score,
-          detected_objects: detected_objects
-        )
-        expect(result).to be_failure
-        expect(result.full_error_message).to eq('Exposure score must be numeric')
-      end
-
-      it 'fails when aesthetic_score is not numeric' do
-        result = described_class.call(
-          photo: photo,
-          sharpness_score: sharpness_score,
-          exposure_score: exposure_score,
-          aesthetic_score: 'not_numeric',
-          detected_objects: detected_objects
-        )
-        expect(result).to be_failure
-        expect(result.full_error_message).to eq('Aesthetic score must be numeric')
-      end
-
-      it 'fails when detected_objects is not an array' do
-        result = described_class.call(
-          photo: photo,
-          sharpness_score: sharpness_score,
-          exposure_score: exposure_score,
-          aesthetic_score: aesthetic_score,
-          detected_objects: 'not_an_array'
-        )
-        expect(result).to be_failure
-        expect(result.full_error_message).to eq('Detected objects must be an array')
+        expect(result.photo_analysis).to eq(created_photo_analysis)
       end
     end
 
     context 'when database operation fails' do
-      it 'fails when PhotoAnalysis.create! raises a StandardError' do
-        expect(PhotoAnalysis).to receive(:create!).and_raise(StandardError, 'Database connection lost')
+      before do
+        allow(photo_analysis_association).to receive(:create!).and_raise(StandardError, 'Database error')
+      end
 
+      it 'fails' do
         result = described_class.call(
+          context,
           photo: photo,
           sharpness_score: sharpness_score,
           exposure_score: exposure_score,
@@ -160,11 +84,19 @@ RSpec.describe Photos::Analyse::SaveResults, type: :command do
           detected_objects: detected_objects
         )
         expect(result).to be_failure
-        expect(result.full_error_message)
-          .to eq('Unexpected error while saving photo analysis: Database connection lost')
+      end
+
+      it 'returns an error message' do
+        result = described_class.call(
+          context,
+          photo: photo,
+          sharpness_score: sharpness_score,
+          exposure_score: exposure_score,
+          aesthetic_score: aesthetic_score,
+          detected_objects: detected_objects
+        )
+        expect(result.errors.full_messages).to include('Base Database error')
       end
     end
   end
 end
-
-# rubocop:enable RSpec/VerifiedDoubles

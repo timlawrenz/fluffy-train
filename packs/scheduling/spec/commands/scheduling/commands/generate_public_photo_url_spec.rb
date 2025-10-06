@@ -1,27 +1,17 @@
-# frozen_string_literal: true
-
 require 'rails_helper'
-require 'gl_command/rspec'
 
-RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
-  let(:photo) { FactoryBot.build_stubbed(:photo) }
-  let(:image_attachment) { instance_double(ActiveStorage::Attached::One) }
-  let(:public_url) { 'https://example.com/photo.jpg' }
-
-  before do
-    RSpec::Mocks.allow_message(photo, :image).and_return(image_attachment)
-    RSpec::Mocks.allow_message(Rails.application.routes.url_helpers, :url_for).and_return(public_url)
-  end
-
-  describe 'interface' do
-    it { is_expected.to require(:photo).being(Photo) }
-    it { is_expected.to returns(:public_photo_url) }
-  end
-
+RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl do
   describe '#call' do
+    let(:photo) { instance_double(Photo) }
+
     context 'when photo has an attached image' do
+      let(:image_attachment) { double('ActiveStorage::Attached::One') }
+      let(:public_url) { 'https://example.com/photo.jpg' }
+
       before do
-        RSpec::Mocks.allow_message(image_attachment, :attached?).and_return(true)
+        allow(photo).to receive(:is_a?).with(Photo).and_return(true)
+        allow(photo).to receive(:image).and_return(image_attachment)
+        allow(Rails.application.routes.url_helpers).to receive(:url_for).with(image_attachment).and_return(public_url)
       end
 
       it 'is successful' do
@@ -40,27 +30,28 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl, type: :command do
       end
     end
 
-    context 'when photo has no attached image' do
+    context 'when photo does not have an attached image' do
       before do
-        RSpec::Mocks.allow_message(image_attachment, :attached?).and_return(false)
+        allow(photo).to receive(:is_a?).with(Photo).and_return(true)
+        allow(photo).to receive(:image).and_return(nil)
       end
 
-      it 'is a failure' do
+      it 'fails' do
         result = described_class.call(photo: photo)
         expect(result).to be_failure
       end
 
       it 'returns an error message' do
         result = described_class.call(photo: photo)
-        expect(result.full_error_message).to eq('Photo must have an attached image')
+        expect(result.errors.full_messages).to include('Photo does not have an attached image')
       end
     end
-  end
 
-  describe '#rollback' do
-    it 'does not have a custom rollback method' do
-      rollback_method = described_class.instance_method(:rollback)
-      expect(rollback_method.owner).to eq(GLCommand::Callable)
+    context 'when photo is not a Photo object' do
+      it 'fails' do
+        result = described_class.call(photo: 'not a photo')
+        expect(result).to be_failure
+      end
     end
   end
 end

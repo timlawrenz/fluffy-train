@@ -30,6 +30,7 @@ RSpec.describe Photos::AnalysePhoto, type: :command do
                                                Photos::Analyse::Exposure,
                                                Photos::Analyse::Aesthetics,
                                                Photos::Analyse::ObjectDetection,
+                                               Photos::Analyse::Caption,
                                                Photos::Analyse::SaveResults
                                              ])
     end
