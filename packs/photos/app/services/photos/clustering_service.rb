@@ -2,7 +2,7 @@
 
 module Photos
   class ClusteringService
-    DEFAULT_K_CLUSTERS = 5
+    DEFAULT_K_CLUSTERS = 20
 
     def initialize(k_clusters: DEFAULT_K_CLUSTERS)
       @k_clusters = k_clusters
