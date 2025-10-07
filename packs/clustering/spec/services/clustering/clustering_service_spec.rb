@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Photos::ClusteringService do
+RSpec.describe Clustering::ClusteringService do
   describe '#call' do
     let(:service) { described_class.new(k_clusters: 3) }
 
@@ -64,7 +64,7 @@ RSpec.describe Photos::ClusteringService do
         expect(result[:message]).to include('Successfully clustered 3 photos into 3 clusters')
 
         # Verify clusters were created
-        expect(Cluster.count).to eq(3)
+        expect(Clustering::Cluster.count).to eq(3)
       end
 
       it 'assigns cluster_id to all photos' do
@@ -72,14 +72,14 @@ RSpec.describe Photos::ClusteringService do
 
         Photo.where(persona: persona).find_each do |photo|
           expect(photo.cluster_id).not_to be_nil
-          expect(photo.cluster).to be_a(Cluster)
+          expect(photo.cluster).to be_a(Clustering::Cluster)
         end
       end
 
       it 'creates clusters with correct names and status' do
         service.call
 
-        clusters = Cluster.order(:id)
+        clusters = Clustering::Cluster.order(:id)
         expect(clusters.count).to eq(3)
 
         clusters.each_with_index do |cluster, index|
@@ -92,20 +92,20 @@ RSpec.describe Photos::ClusteringService do
         service.call
 
         # Check that at least one cluster has photos assigned
-        clusters_with_photos = Cluster.where('photos_count > 0')
+        clusters_with_photos = Clustering::Cluster.where('photos_count > 0')
         expect(clusters_with_photos.count).to be_positive
 
         # Verify total photos assigned equals original photos
-        total_assigned = Cluster.sum(:photos_count)
+        total_assigned = Clustering::Cluster.sum(:photos_count)
         expect(total_assigned).to eq(3)
       end
 
       it 'wraps database operations in a transaction' do
         # Mock an error during cluster creation to test rollback
-        allow(Cluster).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new(Cluster.new))
+        allow(Clustering::Cluster).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new(Clustering::Cluster.new))
 
         expect { service.call }.not_to change(Photo.where.not(cluster_id: nil), :count)
-        expect { service.call }.not_to change(Cluster, :count)
+        expect { service.call }.not_to change(Clustering::Cluster, :count)
       end
     end
 
@@ -143,7 +143,7 @@ RSpec.describe Photos::ClusteringService do
 
         expect(result[:success]).to be false
         expect(result[:error]).to eq('Clustering failed')
-        expect(Rails.logger).to have_received(:error).with('Photos::ClusteringService failed: Clustering failed')
+        expect(Rails.logger).to have_received(:error).with('Clustering::ClusteringService failed: Clustering failed')
       end
     end
   end
