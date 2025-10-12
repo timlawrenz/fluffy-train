@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Cluster do
+RSpec.describe Clustering::Cluster do
   describe 'associations' do
     it 'has many photos' do
       association = described_class.reflect_on_association(:photos)
