@@ -190,7 +190,7 @@
   - [ ] select_new_theme(available_clusters, context)
   - [ ] current_posts_count(context)
 
-- [ ] 2.1.3 Write ThemeOfWeekStrategy specs
+- [x] 2.1.3 Write ThemeOfWeekStrategy specs
   - [ ] Test cluster selection when theme active
   - [ ] Test new theme selection at week boundary
   - [ ] Test variety enforcement
@@ -220,7 +220,7 @@
   - [ ] advance_rotation(available_clusters, context)
   - [ ] rotation_order_changed?(rotation_state, available_clusters)
 
-- [ ] 2.2.3 Write ThematicRotationStrategy specs
+- [x] 2.2.3 Write ThematicRotationStrategy specs
   - [ ] Test rotation initialization
   - [ ] Test cluster advancement
   - [ ] Test selection mode toggling
