@@ -1,0 +1,66 @@
+# Content Strategy Engine Configuration
+# 
+# This configuration encodes Instagram best practices based on research
+# analyzing 10M+ posts. See docs/research/content-strategy-engine/ for details.
+
+development:
+  # Posting Frequency (per week)
+  # Research shows 3-5 posts/week is optimal for engagement without oversaturation
+  posting_frequency_min: 3
+  posting_frequency_max: 5
+  posting_days_gap: 1
+
+  # Optimal Posting Times (local timezone)
+  # Peak engagement windows: 5-8am and 10am-3pm
+  optimal_time_start_hour: 5
+  optimal_time_end_hour: 8
+  alternative_time_start_hour: 10
+  alternative_time_end_hour: 15
+  timezone: "UTC"
+
+  # Content Variety Rules
+  # Prevent content fatigue by spacing similar themes 2-3 days apart
+  variety_min_days_gap: 2
+  variety_max_same_cluster: 3
+
+  # Hashtag Strategy
+  # 5-12 relevant hashtags is optimal (avoid hitting 30 limit)
+  hashtag_count_min: 5
+  hashtag_count_max: 12
+
+  # Format Preferences
+  # Carousels get 3x engagement vs static; Reels favored by algorithm
+  format_prefer_reels: false
+  format_prefer_carousels: true
+
+test:
+  posting_frequency_min: 1
+  posting_frequency_max: 7
+  posting_days_gap: 1
+  optimal_time_start_hour: 5
+  optimal_time_end_hour: 8
+  alternative_time_start_hour: 10
+  alternative_time_end_hour: 15
+  timezone: "UTC"
+  variety_min_days_gap: 2
+  variety_max_same_cluster: 3
+  hashtag_count_min: 5
+  hashtag_count_max: 12
+  format_prefer_reels: false
+  format_prefer_carousels: true
+
+production:
+  posting_frequency_min: 3
+  posting_frequency_max: 5
+  posting_days_gap: 1
+  optimal_time_start_hour: 5
+  optimal_time_end_hour: 8
+  alternative_time_start_hour: 10
+  alternative_time_end_hour: 15
+  timezone: "UTC"
+  variety_min_days_gap: 2
+  variety_max_same_cluster: 3
+  hashtag_count_min: 5
+  hashtag_count_max: 12
+  format_prefer_reels: false
+  format_prefer_carousels: true

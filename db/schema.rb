@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_04_143549) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_02_215735) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -49,6 +49,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_143549) do
     t.integer "photos_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "content_strategy_histories", force: :cascade do |t|
+    t.bigint "persona_id", null: false
+    t.bigint "post_id", null: false
+    t.bigint "cluster_id"
+    t.string "strategy_name"
+    t.jsonb "decision_context", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cluster_id"], name: "index_content_strategy_histories_on_cluster_id"
+    t.index ["persona_id", "created_at"], name: "index_content_strategy_histories_on_persona_id_and_created_at"
+    t.index ["persona_id"], name: "index_content_strategy_histories_on_persona_id"
+  end
+
+  create_table "content_strategy_states", force: :cascade do |t|
+    t.bigint "persona_id", null: false
+    t.string "active_strategy"
+    t.jsonb "strategy_config", default: {}
+    t.jsonb "state_data", default: {}
+    t.datetime "started_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["persona_id"], name: "index_content_strategy_states_on_persona_id", unique: true
   end
 
   create_table "personas", force: :cascade do |t|
@@ -92,9 +116,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_143549) do
     t.datetime "posted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "cluster_id"
+    t.string "strategy_name"
+    t.datetime "optimal_time_calculated"
+    t.jsonb "hashtags", default: []
+    t.index ["cluster_id"], name: "index_scheduling_posts_on_cluster_id"
     t.index ["persona_id"], name: "index_scheduling_posts_on_persona_id"
     t.index ["photo_id", "persona_id"], name: "index_posts_on_photo_id_and_persona_id", unique: true
     t.index ["photo_id"], name: "index_scheduling_posts_on_photo_id"
+    t.index ["strategy_name"], name: "index_scheduling_posts_on_strategy_name"
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
@@ -178,9 +208,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_04_143549) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "content_strategy_histories", "clusters"
+  add_foreign_key "content_strategy_histories", "personas"
+  add_foreign_key "content_strategy_histories", "scheduling_posts", column: "post_id"
+  add_foreign_key "content_strategy_states", "personas"
   add_foreign_key "photo_analyses", "photos"
   add_foreign_key "photos", "clusters"
   add_foreign_key "photos", "personas"
+  add_foreign_key "scheduling_posts", "clusters"
   add_foreign_key "scheduling_posts", "personas"
   add_foreign_key "scheduling_posts", "photos"
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
