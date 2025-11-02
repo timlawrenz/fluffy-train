@@ -34,7 +34,7 @@ module ContentStrategy
 
     def validate_strategy!
       unless StrategyRegistry.exists?(strategy_name)
-        raise ArgumentError, "Unknown strategy: #{strategy_name}. Available: #{StrategyRegistry.all.join(', ')}"
+        raise UnknownStrategyError.new(strategy_name, StrategyRegistry.all)
       end
     end
 

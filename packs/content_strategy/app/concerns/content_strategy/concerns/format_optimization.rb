@@ -10,13 +10,8 @@ module ContentStrategy
       end
 
       def generate_hashtags(photo:, cluster:, config:)
-        tags = []
-        
-        tags << cluster_hashtags(cluster) if cluster
-        tags << photo_hashtags(photo)
-        tags << generic_instagram_tags
-        
-        tags.flatten.compact.uniq.take(rand(config.hashtag_count_min..config.hashtag_count_max))
+        count = rand(config.hashtag_count_min..config.hashtag_count_max)
+        HashtagEngine.generate(photo: photo, cluster: cluster, count: count)
       end
 
       private
@@ -28,28 +23,6 @@ module ContentStrategy
 
       def reel_candidate?(photo)
         photo.respond_to?(:video?) && photo.video?
-      end
-
-      def cluster_hashtags(cluster)
-        return [] unless cluster
-        
-        name_parts = cluster.name.downcase.split(/[\s_-]+/)
-        name_parts.map { |part| "##{part}" }
-      end
-
-      def photo_hashtags(photo)
-        return [] unless photo.respond_to?(:analysis)
-        
-        analysis = photo.analysis
-        return [] unless analysis
-
-        tags = []
-        tags << analysis.detected_objects&.map { |obj| "##{obj.gsub(' ', '')}" } if analysis.respond_to?(:detected_objects)
-        tags.flatten.compact
-      end
-
-      def generic_instagram_tags
-        %w[#photography #instagood #photooftheday]
       end
     end
   end

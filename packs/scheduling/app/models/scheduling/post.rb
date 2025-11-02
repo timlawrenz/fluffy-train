@@ -6,6 +6,11 @@ module Scheduling
 
     belongs_to :photo, class_name: 'Photo'
     belongs_to :persona, class_name: 'Persona'
+    belongs_to :cluster, class_name: 'Clustering::Cluster', optional: true
+
+    scope :posted, -> { where(status: 'posted') }
+    scope :with_strategy, ->(strategy_name) { where(strategy_name: strategy_name) }
+    scope :from_cluster, ->(cluster_id) { where(cluster_id: cluster_id) }
 
     state_machine :status, initial: :draft do
       state :draft

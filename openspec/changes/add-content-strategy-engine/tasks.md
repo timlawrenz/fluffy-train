@@ -229,37 +229,37 @@
 
 ### 2.3 Cluster Integration
 
-- [ ] 2.3.1 Enhance Clustering::Cluster model
+- [x] 2.3.1 Enhance Clustering::Cluster model
   - [ ] Add scope: available_for_posting
   - [ ] Add scope: with_unposted_photos
   - [ ] Add method: unposted_photos
   - [ ] Add method: last_posted_at
 
-- [ ] 2.3.2 Enhance Photo model (if needed)
+- [x] 2.3.2 Enhance Photo model (if needed)
   - [ ] Add scope: unposted
   - [ ] Add scope: in_cluster(cluster_id)
   - [ ] Add method: posted?
 
-- [ ] 2.3.3 Update Scheduling::Post model
+- [x] 2.3.3 Update Scheduling::Post model
   - [ ] Add scope: posted (where status: posted)
   - [ ] Add belongs_to :cluster (optional)
 
-- [ ] 2.3.4 Write integration specs
+- [x] 2.3.4 Write integration specs
 
 ### 2.4 Hashtag Generation
 
-- [ ] 2.4.1 Create ContentStrategy::HashtagEngine service
+- [x] 2.4.1 Create ContentStrategy::HashtagEngine service
   - [ ] Implement generate(photo, cluster, count:)
   - [ ] Query photo tags/caption for relevant terms
   - [ ] Mix popular, medium, niche hashtags (2-3-3 ratio)
   - [ ] Return array of hashtag strings
 
-- [ ] 2.4.2 Create hashtag configuration
+- [x] 2.4.2 Create hashtag configuration
   - [ ] Define popular hashtags pool
   - [ ] Define niche hashtag patterns
   - [ ] Allow per-cluster hashtag overrides
 
-- [ ] 2.4.3 Write hashtag generation specs
+- [x] 2.4.3 Write hashtag generation specs
 
 ## PHASE 3: Integration (Week 3)
 

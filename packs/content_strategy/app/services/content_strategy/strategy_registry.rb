@@ -6,7 +6,7 @@ module ContentStrategy
       end
 
       def get(name)
-        strategies[name.to_sym] or raise ArgumentError, "Unknown strategy: #{name}"
+        strategies[name.to_sym] or raise UnknownStrategyError.new(name, all)
       end
 
       def all
