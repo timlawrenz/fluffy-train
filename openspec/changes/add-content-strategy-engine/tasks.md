@@ -321,12 +321,12 @@
 
 ### 3.2 Scheduler Integration
 
-- [ ] 3.2.1 Create feature flag: content_strategy_enabled
+- [x] 3.2.1 Create feature flag: content_strategy_enabled
   - [ ] Add to configuration
   - [ ] Default: false
   - [ ] Per-persona override support
 
-- [ ] 3.2.2 Modify posting rake task
+- [x] 3.2.2 Modify posting rake task
   - [ ] Check feature flag for persona
   - [ ] If enabled: Use ContentStrategy::SelectNextPost
   - [ ] If disabled: Use existing logic
