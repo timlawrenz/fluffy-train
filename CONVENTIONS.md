@@ -3,12 +3,18 @@
 *   **Avoid Domain Logic in Controllers:** Keep domain logic out of controllers; delegate it to `GLCommand`s or service layers.
     **Use state_machines for state management:** For models with any state transitions, use the `state_machines-activerecord` gem (the modern successor to `acts_as_state_machine`). Status columns should be of type string.
 *   **Use `GLCommand` for Business Logic:** Isolate and chain individual steps in business logic flows using the `gl_command` gem (https://github.com/givelively/gl_command).
+    *   **Base Classes:** Use `GLCommand::Callable` for single commands or `GLCommand::Chainable` for command chains
     *   **Naming:** Command class names must start with a verb (e.g., `SendEmail`, `CreateUser`).
     *   **Encapsulation:** Minimize logic in controllers and workers; move complex logic into Commands.
     *   **Single Responsibility:** Each Command should have a small, single purpose.
-    *   **Chaining:** Combine multiple Commands into a chain for complex, multi-step operations.
+    *   **Interface Declaration:** Use `requires`, `allows`, and `returns` to declare command interface explicitly
+    *   **Calling Commands:** Use `.call` in controllers (returns context with errors), `.call!` in rake tasks/background jobs and within other commands (raises on error)
+    *   **Error Handling:** Use `stop_and_fail!` to immediately halt execution. Pass a string for user-facing errors or an exception for system errors. Use `no_notify: true` to suppress Sentry notifications
+    *   **Validations:** Include `ActiveModel::Validations` and use standard Rails validations. Validations run before `call` method
+    *   **Chaining:** Combine multiple Commands into a chain for complex, multi-step operations using `GLCommand::Chainable` and the `chain` method
     *   **Rollback:** Commands can implement a `rollback` method to undo their actions.
     *   **Automatic Rollback on Failure:** If any command within a chain fails during execution, the `rollback` methods of all *previously successfully executed commands in that chain* will be automatically invoked in reverse order. Design commands and their `rollback` methods with this transactional behavior in mind.
+    *   **Context Access:** All command parameters and returns are accessible via `context` object (e.g., `context.user`, `context.message`)
 *   **Testing Strategy:**
     *   **No Controller Specs:** Do not write controller specs.
     *   **Isolated Unit Tests:** Cover classes, methods, and `GLCommand`s with isolated unit tests (mocking DB/external calls where possible and reasonable, **including rollback logic**).

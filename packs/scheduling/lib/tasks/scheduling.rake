@@ -29,7 +29,7 @@ namespace :scheduling do
         puts "No unposted photos available for persona: #{persona.name}"
       end
     else
-      puts "Failed to post photo: #{result.errors.join(', ')}"
+      puts "Failed to post photo: #{result.errors.inspect}"
       exit 1
     end
   end

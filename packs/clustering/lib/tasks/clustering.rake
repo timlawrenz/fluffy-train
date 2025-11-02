@@ -6,7 +6,7 @@ namespace :clustering do
     puts 'Starting photo clustering process...'
 
     begin
-      clustering_service = Photos::ClusteringService.new
+      clustering_service = Clustering::ClusteringService.new
       result = clustering_service.call
 
       if result[:success]

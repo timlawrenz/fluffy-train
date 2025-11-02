@@ -56,7 +56,7 @@ module Scheduling
       end
 
       def create_posting_record(photo)
-        Scheduling::Post.create(
+        Scheduling::Post.create!(
           photo: photo,
           persona: persona,
           caption: photo.photo_analysis&.caption,
@@ -71,7 +71,7 @@ module Scheduling
         if public_url_result.success?
           post_to_instagram(post, photo, public_url_result.public_photo_url)
         else
-          mark_post_failed(post, photo, "URL generation failed: #{public_url_result.errors.join(', ')}")
+          mark_post_failed(post, photo, "URL generation failed: #{public_url_result.errors}")
         end
       rescue StandardError => e
         mark_post_failed(post, photo, "Unexpected error: #{e.message}")
@@ -101,11 +101,11 @@ module Scheduling
       end
 
       def generate_public_photo_url(photo)
-        Scheduling::Commands::GeneratePublicPhotoUrl.call(photo: photo)
+        Scheduling::Commands::GeneratePublicPhotoUrl.call!(photo: photo)
       end
 
       def send_to_instagram(post, public_photo_url)
-        Scheduling::Commands::SendPostToInstagram.call(
+        Scheduling::Commands::SendPostToInstagram.call!(
           public_photo_url: public_photo_url,
           caption: post.caption,
           persona: persona

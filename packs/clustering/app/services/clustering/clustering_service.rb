@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Photos
+module Clustering
   class ClusteringService
     DEFAULT_K_CLUSTERS = 20
 
@@ -43,7 +43,7 @@ module Photos
 
     def create_clusters(actual_k)
       (0...actual_k).map do |cluster_index|
-        Cluster.create!(
+        Clustering::Cluster.create!(
           name: "Cluster #{cluster_index + 1}",
           status: 0 # active status
         )
@@ -84,7 +84,7 @@ module Photos
     end
 
     def log_error(error)
-      Rails.logger.error "Photos::ClusteringService failed: #{error.message}"
+      Rails.logger.error "Clustering::ClusteringService failed: #{error.message}"
       Rails.logger.error error.backtrace.join("\n")
     end
   end
