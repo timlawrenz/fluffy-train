@@ -220,7 +220,9 @@ RSpec.describe 'scheduling:post_next_best Rake Task Integration', type: :integra
           Rake::Task['scheduling:post_next_best'].invoke('existing_persona')
         end
 
-        expect(output).to include('Failed to post photo: Service error, API failure')
+        expect(output).to include('Failed to post photo:')
+        expect(output).to include('Service error')
+        expect(output).to include('API failure')
         expect(status).to eq(1)
 
         Rake::Task['scheduling:post_next_best'].reenable

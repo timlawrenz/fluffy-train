@@ -103,8 +103,8 @@ module Scheduling
             end
 
             before do
-              allow(mock_url_command).to receive(:call).and_return(mock_url_result)
-              allow(mock_instagram_command).to receive(:call).and_return(mock_instagram_result)
+              allow(mock_url_command).to receive(:call!).and_return(mock_url_result)
+              allow(mock_instagram_command).to receive(:call!).and_return(mock_instagram_result)
             end
 
             it 'creates a Scheduling::Post record with posting status when photo is selected' do
@@ -122,9 +122,9 @@ module Scheduling
             it 'calls the Instagram API with correct parameters' do
               described_class.call(persona: persona)
 
-              expect(mock_url_command).to have_received(:call)
+              expect(mock_url_command).to have_received(:call!)
                 .with(photo: higher_scored_photo)
-              expect(mock_instagram_command).to have_received(:call).with(
+              expect(mock_instagram_command).to have_received(:call!).with(
                 public_photo_url: 'https://example.com/photo.jpg',
                 caption: 'Higher scored photo caption',
                 persona: persona
@@ -187,7 +187,7 @@ module Scheduling
               it 'calls the Instagram API with nil caption' do
                 described_class.call(persona: persona)
 
-                expect(mock_instagram_command).to have_received(:call).with(
+                expect(mock_instagram_command).to have_received(:call!).with(
                   public_photo_url: 'https://example.com/photo.jpg',
                   caption: nil,
                   persona: persona

@@ -11,7 +11,8 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl do
       before do
         allow(photo).to receive(:is_a?).with(Photo).and_return(true)
         allow(photo).to receive(:image).and_return(image_attachment)
-        allow(Rails.application.routes.url_helpers).to receive(:url_for).with(image_attachment).and_return(public_url)
+        allow(image_attachment).to receive(:attached?).and_return(true)
+        allow(image_attachment).to receive(:url).and_return(public_url)
       end
 
       it 'is successful' do
@@ -20,7 +21,7 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl do
       end
 
       it 'generates a public URL for the photo' do
-        expect(Rails.application.routes.url_helpers).to receive(:url_for).with(image_attachment)
+        expect(image_attachment).to receive(:url)
         described_class.call(photo: photo)
       end
 
@@ -31,26 +32,29 @@ RSpec.describe Scheduling::Commands::GeneratePublicPhotoUrl do
     end
 
     context 'when photo does not have an attached image' do
+      let(:image_attachment) { double('ActiveStorage::Attached::One') }
+
       before do
         allow(photo).to receive(:is_a?).with(Photo).and_return(true)
-        allow(photo).to receive(:image).and_return(nil)
+        allow(photo).to receive(:image).and_return(image_attachment)
+        allow(image_attachment).to receive(:attached?).and_return(false)
       end
 
       it 'fails' do
         result = described_class.call(photo: photo)
-        expect(result).to be_failure
+        expect(result).not_to be_success
       end
 
       it 'returns an error message' do
         result = described_class.call(photo: photo)
-        expect(result.errors.full_messages).to include('Photo does not have an attached image')
+        expect(result.full_error_message).to include('Photo must have an attached image')
       end
     end
 
     context 'when photo is not a Photo object' do
       it 'fails' do
         result = described_class.call(photo: 'not a photo')
-        expect(result).to be_failure
+        expect(result).not_to be_success
       end
     end
   end
