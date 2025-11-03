@@ -111,4 +111,38 @@ Before you can schedule posts, you need to create a `Persona`.
 
 ### 5. Usage
 
-With the setup complete, you can now use the manual console workflow to import and schedule photos. See the [Manual Scheduling Documentation](./docs/01-manual-scheduling.md#43-manual-console-workflow) for a detailed guide.
+With the setup complete, you can now use the application to post content to Instagram.
+
+#### Quick Start - Daily Posting
+
+Post using the automated Content Strategy Engine:
+
+```bash
+# Recommended: Use content strategy to select and post optimal photo
+bundle exec rails scheduling:post_with_strategy[sarah]
+
+# Alternative: Use legacy curator's choice (highest aesthetic score)
+bundle exec rails scheduling:post_next_best[sarah]
+```
+
+For detailed daily workflows, troubleshooting, and advanced options, see:
+- **[Daily Posting Guide](./docs/daily-posting-guide.md)** - Complete step-by-step workflows
+- **[Content Strategy Engine](./docs/04c-content-strategy-engine.md)** - Strategy features and configuration
+
+#### Content Strategy Features
+
+The Content Strategy Engine intelligently selects content using Instagram best practices:
+- **Optimal posting times** (5-8am, 10am-3pm) for 2.25x reach potential
+- **Content variety enforcement** (2-3 day gaps between similar themes)
+- **Smart hashtag generation** (5-12 relevant tags)
+- **Posting frequency control** (3-5 posts/week recommended)
+- **Two strategies:** Theme of Week (focused) or Thematic Rotation (diverse)
+
+Check strategy status:
+```bash
+bundle exec rails content_strategy:show[sarah]
+```
+
+#### Manual Console Workflow (Advanced)
+
+For manual control, see the [Manual Scheduling Documentation](./docs/01-manual-scheduling.md#43-manual-console-workflow) for a detailed guide.
