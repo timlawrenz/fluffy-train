@@ -29,7 +29,7 @@ module ContentStrategy
       state_cluster_id = state.get_state(:cluster_id)
 
       if state_week == week_number && state_cluster_id
-        Cluster.find_by(id: state_cluster_id)
+        Clustering::Cluster.find_by(id: state_cluster_id)
       else
         new_cluster = select_new_cluster
         if new_cluster

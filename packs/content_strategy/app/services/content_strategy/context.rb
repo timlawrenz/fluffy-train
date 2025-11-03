@@ -20,7 +20,11 @@ module ContentStrategy
     end
 
     def available_clusters
-      @available_clusters ||= Cluster.where(persona: persona).order(:name)
+      @available_clusters ||= Clustering::Cluster
+        .joins(:photos)
+        .where(photos: { persona_id: persona.id })
+        .distinct
+        .order(:name)
     end
 
     def recent_cluster_ids
