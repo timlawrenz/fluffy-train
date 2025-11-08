@@ -15,14 +15,9 @@ Enable strategic content organization through pillars (themes) that guide conten
 
 ## ADDED Requirements
 
-### REQ-1: Pillar Definition and Management
+### Requirement: Pillar Definition and Management
 
-**ID**: `PILLAR-001`  
-**Priority**: High  
-**Type**: Functional
-
-**Description:**  
-System shall allow creation and management of content pillars with strategic attributes.
+System SHALL allow creation and management of content pillars with strategic attributes.
 
 **Acceptance Criteria:**
 - Pillar has name, description, weight (%), active status
@@ -34,29 +29,24 @@ System shall allow creation and management of content pillars with strategic att
 
 #### Scenario: Create Thanksgiving pillar
 
-**Given** Sarah persona exists  
-**When** I create a pillar with name "Thanksgiving 2024", weight 30%, dates Nov 7-Dec 5  
-**Then** pillar is created with strategic attributes  
-**And** pillar.weight == 30.0  
-**And** pillar.guidelines includes tone and topics
+- **GIVEN** Sarah persona exists  
+- **WHEN** I create a pillar with name "Thanksgiving 2024", weight 30%, dates Nov 7-Dec 5  
+- **THEN** pillar is created with strategic attributes  
+- **AND** pillar.weight == 30.0  
+- **AND** pillar.guidelines includes tone and topics
 
 #### Scenario: Weight validation
 
-**Given** Sarah has existing pillars totaling 80% weight  
-**When** I try to create pillar with weight 25%  
-**Then** validation fails (total would exceed 100%)  
-**And** error message indicates weight limit exceeded
+- **GIVEN** Sarah has existing pillars totaling 80% weight  
+- **WHEN** I try to create pillar with weight 25%  
+- **THEN** validation fails (total would exceed 100%)  
+- **AND** error message indicates weight limit exceeded
 
 ---
 
-### REQ-2: Many-to-Many Pillar-Cluster Relationships
+### Requirement: Many-to-Many Pillar-Cluster Relationships
 
-**ID**: `PILLAR-002`  
-**Priority**: High  
-**Type**: Functional
-
-**Description:**  
-System shall support many-to-many relationships between pillars and clusters through a join table, allowing clusters to serve multiple strategic purposes.
+System SHALL support many-to-many relationships between pillars and clusters through a join table, allowing clusters to serve multiple strategic purposes.
 
 **Acceptance Criteria:**
 - PillarClusterAssignment join model with pillar_id and cluster_id
@@ -68,30 +58,25 @@ System shall support many-to-many relationships between pillars and clusters thr
 
 #### Scenario: Assign cluster to multiple pillars
 
-**Given** "Cozy Home Moments" cluster exists  
-**And** "Thanksgiving 2024" pillar exists  
-**And** "Wellness & Self-Care" pillar exists  
-**When** I assign cluster to Thanksgiving pillar  
-**And** I assign cluster to Wellness pillar  
-**Then** cluster.pillars.count == 2  
-**And** both pillars list the cluster
+- **GIVEN** "Cozy Home Moments" cluster exists  
+- **AND** "Thanksgiving 2024" pillar exists  
+- **AND** "Wellness & Self-Care" pillar exists  
+- **WHEN** I assign cluster to Thanksgiving pillar  
+- **AND** I assign cluster to Wellness pillar  
+- **THEN** cluster.pillars.count == 2  
+- **AND** both pillars list the cluster
 
 #### Scenario: Mark primary pillar assignment
 
-**Given** cluster assigned to multiple pillars  
-**When** I mark Thanksgiving assignment as primary  
-**Then** cluster.primary_pillar == Thanksgiving pillar
+- **GIVEN** cluster assigned to multiple pillars  
+- **WHEN** I mark Thanksgiving assignment as primary  
+- **THEN** cluster.primary_pillar == Thanksgiving pillar
 
 ---
 
-### REQ-3: Content Gap Analysis
+### Requirement: Content Gap Analysis
 
-**ID**: `PILLAR-003`  
-**Priority**: High  
-**Type**: Functional
-
-**Description:**  
-System shall analyze content gaps by comparing pillar target posts against available photos.
+System SHALL analyze content gaps by comparing pillar target posts against available photos.
 
 **Acceptance Criteria:**
 - Calculate posts_needed per pillar based on weight and timeframe
@@ -102,33 +87,28 @@ System shall analyze content gaps by comparing pillar target posts against avail
 
 #### Scenario: Identify critical content gap
 
-**Given** Thanksgiving pillar with weight 30%  
-**And** 30 total posts needed in next 30 days  
-**And** Thanksgiving target is 9 posts (30% of 30)  
-**And** 0 unposted photos in Thanksgiving clusters  
-**When** I run gap analysis  
-**Then** gap status is :critical  
-**And** gap == 9  
-**And** recommended action is "create 9 photos"
+- **GIVEN** Thanksgiving pillar with weight 30%  
+- **AND** 30 total posts needed in next 30 days  
+- **AND** Thanksgiving target is 9 posts (30% of 30)  
+- **AND** 0 unposted photos in Thanksgiving clusters  
+- **WHEN** I run gap analysis  
+- **THEN** gap status is :critical  
+- **AND** gap == 9  
+- **AND** recommended action is "create 9 photos"
 
 #### Scenario: Pillar ready to post
 
-**Given** Urban Lifestyle pillar needs 8 posts  
-**And** 15 unposted photos available  
-**When** I run gap analysis  
-**Then** status is :ready  
-**And** gap == -7 (surplus)
+- **GIVEN** Urban Lifestyle pillar needs 8 posts  
+- **AND** 15 unposted photos available  
+- **WHEN** I run gap analysis  
+- **THEN** status is :ready  
+- **AND** gap == -7 (surplus)
 
 ---
 
-### REQ-4: Pillar-Aware Content Selection
+### Requirement: Pillar-Aware Content Selection
 
-**ID**: `PILLAR-004`  
-**Priority**: High  
-**Type**: Functional
-
-**Description:**  
-Content strategy shall respect pillar weights when selecting next post, ensuring balanced coverage across strategic themes.
+Content strategy SHALL respect pillar weights when selecting next post, ensuring balanced coverage across strategic themes.
 
 **Acceptance Criteria:**
 - Strategy selects pillar based on weighted rotation algorithm
@@ -139,31 +119,26 @@ Content strategy shall respect pillar weights when selecting next post, ensuring
 
 #### Scenario: Select from underposted pillar
 
-**Given** Thanksgiving pillar (30% weight) has posted 2/9 posts (22%)  
-**And** Urban pillar (25% weight) has posted 3/8 posts (37%)  
-**When** strategy selects next post  
-**Then** Thanksgiving pillar is selected (most behind target)  
-**And** photo is from Thanksgiving pillar's clusters  
-**And** caption uses Thanksgiving guidelines (grateful tone)
+- **GIVEN** Thanksgiving pillar (30% weight) has posted 2/9 posts (22%)  
+- **AND** Urban pillar (25% weight) has posted 3/8 posts (37%)  
+- **WHEN** strategy selects next post  
+- **THEN** Thanksgiving pillar is selected (most behind target)  
+- **AND** photo is from Thanksgiving pillar's clusters  
+- **AND** caption uses Thanksgiving guidelines (grateful tone)
 
 #### Scenario: Exclude expired pillar
 
-**Given** Thanksgiving pillar with end_date Dec 5, 2024  
-**And** Current date is Dec 10, 2024  
-**When** strategy selects next pillar  
-**Then** Thanksgiving pillar is not considered  
-**And** next active pillar is selected
+- **GIVEN** Thanksgiving pillar with end_date Dec 5, 2024  
+- **AND** Current date is Dec 10, 2024  
+- **WHEN** strategy selects next pillar  
+- **THEN** Thanksgiving pillar is not considered  
+- **AND** next active pillar is selected
 
 ---
 
-### REQ-5: Dashboard Pillar Visualization
+### Requirement: Dashboard Pillar Visualization
 
-**ID**: `PILLAR-005`  
-**Priority**: Medium  
-**Type**: Functional
-
-**Description:**  
-Dashboard shall display content pillar hierarchy, showing pillars → clusters → photos with gap analysis.
+Dashboard SHALL display content pillar hierarchy, showing pillars → clusters → photos with gap analysis.
 
 **Acceptance Criteria:**
 - Shows all active pillars for persona
@@ -174,24 +149,19 @@ Dashboard shall display content pillar hierarchy, showing pillars → clusters �
 
 #### Scenario: Display pillar hierarchy
 
-**Given** Thanksgiving pillar with 3 assigned clusters  
-**And** Each cluster has photos  
-**When** I view dashboard  
-**Then** I see "Thanksgiving 2024 (30%, Nov 7-Dec 5)"  
-**And** I see "Target: 9 posts | Available: 5 photos | Gap: 4"  
-**And** I see list of 3 clusters with photo counts  
-**And** I see action: "Need 4 more photos"
+- **GIVEN** Thanksgiving pillar with 3 assigned clusters  
+- **AND** Each cluster has photos  
+- **WHEN** I view dashboard  
+- **THEN** I see "Thanksgiving 2024 (30%, Nov 7-Dec 5)"  
+- **AND** I see "Target: 9 posts | Available: 5 photos | Gap: 4"  
+- **AND** I see list of 3 clusters with photo counts  
+- **AND** I see action: "Need 4 more photos"
 
 ---
 
-### REQ-6: Pillar Management CLI
+### Requirement: Pillar Management CLI
 
-**ID**: `PILLAR-006`  
-**Priority**: Medium  
-**Type**: Functional
-
-**Description:**  
-Provide CLI commands for pillar lifecycle management.
+System SHALL provide CLI commands for pillar lifecycle management.
 
 **Acceptance Criteria:**
 - Create pillar: `rails pillars:create`
@@ -202,11 +172,11 @@ Provide CLI commands for pillar lifecycle management.
 
 #### Scenario: Create pillar via CLI
 
-**Given** Sarah persona exists  
-**When** I run `rails pillars:create PERSONA=sarah NAME="Thanksgiving 2024" WEIGHT=30`  
-**Then** pillar is created  
-**And** output confirms creation with pillar ID  
-**And** `rails pillars:list` shows the new pillar
+- **GIVEN** Sarah persona exists  
+- **WHEN** I run `rails pillars:create PERSONA=sarah NAME="Thanksgiving 2024" WEIGHT=30`  
+- **THEN** pillar is created  
+- **AND** output confirms creation with pillar ID  
+- **AND** `rails pillars:list` shows the new pillar
 
 ---
 
