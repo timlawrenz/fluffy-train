@@ -5,20 +5,30 @@ TBD - created by archiving change add-content-strategy-engine. Update Purpose af
 ## Requirements
 ### Requirement: Strategy Pattern Framework
 
-The system SHALL provide a strategy pattern framework for implementing content selection strategies.
+The system SHALL provide a modular strategy framework for content selection with persona-scoped cluster access.
 
-#### Scenario: Register and retrieve strategies
-- **GIVEN** a strategy class inheriting from BaseStrategy
-- **WHEN** the strategy is registered with a unique name
-- **THEN** the strategy can be retrieved by name from the registry
+#### Scenario: Strategy selects from persona's clusters only
+- **GIVEN** a strategy is initialized with persona context
+- **AND** multiple personas have clusters in the system
+- **WHEN** the strategy queries available clusters
+- **THEN** only the persona's clusters SHALL be returned
+- **AND** clusters from other personas SHALL be excluded
+- **AND** query SHALL use direct persona.clusters relationship
 
-#### Scenario: Strategy interface contract
-- **GIVEN** a custom strategy class
-- **WHEN** implementing the strategy
-- **THEN** it MUST implement select_cluster(available_clusters, context)
-- **AND** it MUST implement select_photo(cluster, context)
-- **AND** it MAY override optimal_posting_time(date, context)
-- **AND** it MAY override generate_hashtags(photo, cluster, context)
+#### Scenario: Efficient cluster availability check
+- **GIVEN** a persona with 10 clusters
+- **WHEN** content strategy checks available clusters
+- **THEN** the query SHALL use `persona.clusters` instead of joining through photos
+- **AND** query execution SHALL be faster than previous join-based approach
+- **AND** result SHALL include only clusters with unposted photos
+
+#### Scenario: Cross-persona isolation in multi-user scenario
+- **GIVEN** Sarah and TechReviewer both using the system
+- **AND** both have active content strategies
+- **WHEN** Sarah's strategy selects a cluster
+- **THEN** only Sarah's clusters SHALL be available for selection
+- **AND** TechReviewer's strategy SHALL only see TechReviewer's clusters
+- **AND** no data leakage between personas SHALL occur
 
 ### Requirement: Theme of the Week Strategy
 
