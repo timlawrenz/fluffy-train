@@ -4,6 +4,7 @@ module Scheduling
   module Commands
     class CreatePostRecord < GLCommand::Callable
       requires photo: Photo, persona: Persona, caption: String
+      optional caption_metadata: Hash
       returns post: Scheduling::Post
 
       def call
@@ -11,6 +12,7 @@ module Scheduling
           photo: photo,
           persona: persona,
           caption: caption,
+          caption_metadata: caption_metadata || {},
           status: 'draft'
         )
       end

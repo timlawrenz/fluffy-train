@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_02_215735) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_08_171947) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -49,6 +49,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_02_215735) do
     t.integer "photos_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "persona_id", null: false
+    t.index ["persona_id"], name: "index_clusters_on_persona_id"
   end
 
   create_table "content_strategy_histories", force: :cascade do |t|
@@ -79,6 +81,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_02_215735) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "caption_config", default: {}
+    t.jsonb "hashtag_strategy", default: {}
     t.index ["name"], name: "index_personas_on_name", unique: true
   end
 
@@ -120,6 +124,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_02_215735) do
     t.string "strategy_name"
     t.datetime "optimal_time_calculated"
     t.jsonb "hashtags", default: []
+    t.jsonb "caption_metadata"
     t.index ["cluster_id"], name: "index_scheduling_posts_on_cluster_id"
     t.index ["persona_id"], name: "index_scheduling_posts_on_persona_id"
     t.index ["photo_id", "persona_id"], name: "index_posts_on_photo_id_and_persona_id", unique: true
@@ -208,6 +213,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_02_215735) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "clusters", "personas"
   add_foreign_key "content_strategy_histories", "clusters"
   add_foreign_key "content_strategy_histories", "personas"
   add_foreign_key "content_strategy_histories", "scheduling_posts", column: "post_id"

@@ -38,6 +38,17 @@ class OllamaClient
     new(file_path: file_path).send(:generate_caption)
   end
 
+  # Generates a caption with custom prompts for persona-specific voice.
+  #
+  # @param file_path [String] The absolute path to the image file.
+  # @param system_prompt [String] System instructions for caption generation.
+  # @param user_prompt [String] User prompt with context.
+  # @return [String] Generated caption matching persona voice.
+  # @raise [OllamaClient::Error] if the API returns an error or the request fails.
+  def self.generate_caption_with_prompt(file_path:, system_prompt:, user_prompt:)
+    new(file_path: file_path).send(:generate_caption_with_custom_prompt, system_prompt, user_prompt)
+  end
+
   private
 
   def initialize(file_path:)
@@ -93,6 +104,24 @@ class OllamaClient
       req.body = {
         model: 'llava:latest',
         prompt: caption_generation_prompt,
+        images: [encoded_image],
+        stream: false
+      }
+    end
+
+    handle_caption_response(response)
+  rescue Faraday::Error => e
+    raise Error, "Request failed: #{e.message}"
+  end
+
+  def generate_caption_with_custom_prompt(system_prompt, user_prompt)
+    encoded_image = encode_image
+    combined_prompt = "#{system_prompt}\n\n#{user_prompt}"
+    
+    response = connection.post('/api/generate') do |req|
+      req.body = {
+        model: 'llava:latest',
+        prompt: combined_prompt,
         images: [encoded_image],
         stream: false
       }

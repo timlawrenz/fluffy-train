@@ -3,6 +3,7 @@
 module Scheduling
   class SchedulePost < GLCommand::Chainable
     requires photo: Photo, persona: Persona, caption: String
+    optional caption_metadata: Hash
     returns post: Scheduling::Post
 
     chain Scheduling::Commands::CreatePostRecord,

@@ -1,17 +1,17 @@
 require 'rails_helper'
 
 RSpec.describe ContentStrategy::ThematicRotationStrategy do
-  let(:persona) { create(:persona) }
+  let(:persona) { FactoryBot.create(:persona) }
   let(:config) { ContentStrategy::ConfigLoader.load }
   let(:context) { ContentStrategy::Context.new(persona: persona, config: config) }
   let(:strategy) { described_class.new(context: context) }
 
   describe '#select_next_photo' do
     context 'with multiple clusters' do
-      let!(:cluster1) { create(:cluster, persona: persona, name: 'Mountains') }
-      let!(:cluster2) { create(:cluster, persona: persona, name: 'Cities') }
-      let!(:photo1) { create(:photo, cluster: cluster1, persona: persona) }
-      let!(:photo2) { create(:photo, cluster: cluster2, persona: persona) }
+      let!(:cluster1) { FactoryBot.create(:cluster, persona: persona, name: 'Mountains') }
+      let!(:cluster2) { FactoryBot.create(:cluster, persona: persona, name: 'Cities') }
+      let!(:photo1) { FactoryBot.create(:photo, cluster: cluster1, persona: persona) }
+      let!(:photo2) { FactoryBot.create(:photo, cluster: cluster2, persona: persona) }
 
       it 'returns success with photo and cluster' do
         result = strategy.select_next_photo
@@ -27,7 +27,7 @@ RSpec.describe ContentStrategy::ThematicRotationStrategy do
         cluster_id1 = result1[:cluster].id
 
         # Simulate after_post callback
-        post = create(:scheduling_post, persona: persona, photo: result1[:photo])
+        post = FactoryBot.create(:scheduling_post, persona: persona, photo: result1[:photo])
         strategy.after_post(post: post, photo: result1[:photo], cluster: result1[:cluster])
 
         # Second selection should be different cluster (if available)
@@ -42,12 +42,12 @@ RSpec.describe ContentStrategy::ThematicRotationStrategy do
     end
 
     context 'when max weekly posts reached' do
-      let!(:cluster) { create(:cluster, persona: persona) }
-      let!(:photo) { create(:photo, cluster: cluster, persona: persona) }
+      let!(:cluster) { FactoryBot.create(:cluster, persona: persona) }
+      let!(:photo) { FactoryBot.create(:photo, cluster: cluster, persona: persona) }
 
       before do
         5.times do
-          post = create(:scheduling_post, persona: persona, photo: photo)
+          post = FactoryBot.create(:scheduling_post, persona: persona, photo: photo)
           ContentStrategy::HistoryRecord.create!(
             persona: persona,
             post: post,
@@ -74,9 +74,9 @@ RSpec.describe ContentStrategy::ThematicRotationStrategy do
   end
 
   describe '#select_next_cluster' do
-    let!(:cluster1) { create(:cluster, persona: persona, name: 'A') }
-    let!(:cluster2) { create(:cluster, persona: persona, name: 'B') }
-    let!(:cluster3) { create(:cluster, persona: persona, name: 'C') }
+    let!(:cluster1) { FactoryBot.create(:cluster, persona: persona, name: 'A') }
+    let!(:cluster2) { FactoryBot.create(:cluster, persona: persona, name: 'B') }
+    let!(:cluster3) { FactoryBot.create(:cluster, persona: persona, name: 'C') }
 
     it 'returns cluster based on rotation index' do
       cluster = strategy.send(:select_next_cluster)
@@ -114,7 +114,7 @@ RSpec.describe ContentStrategy::ThematicRotationStrategy do
   end
 
   describe '#advance_rotation_index' do
-    let(:cluster) { create(:cluster, persona: persona) }
+    let(:cluster) { FactoryBot.create(:cluster, persona: persona) }
 
     it 'increments rotation index' do
       expect {
@@ -124,9 +124,9 @@ RSpec.describe ContentStrategy::ThematicRotationStrategy do
   end
 
   describe '#after_post' do
-    let(:cluster) { create(:cluster, persona: persona) }
-    let(:photo) { create(:photo, cluster: cluster, persona: persona) }
-    let(:post) { create(:scheduling_post, persona: persona, photo: photo) }
+    let(:cluster) { FactoryBot.create(:cluster, persona: persona) }
+    let(:photo) { FactoryBot.create(:photo, cluster: cluster, persona: persona) }
+    let(:post) { FactoryBot.create(:scheduling_post, persona: persona, photo: photo) }
 
     it 'records history' do
       expect {

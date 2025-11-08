@@ -2,6 +2,7 @@
 
 FactoryBot.define do
   factory :cluster, class: 'Clustering::Cluster' do
+    association :persona
     name { 'Sample Cluster' }
     status { 0 }
     photos_count { 0 }

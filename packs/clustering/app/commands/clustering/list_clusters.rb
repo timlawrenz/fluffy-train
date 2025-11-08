@@ -2,10 +2,15 @@
 
 module Clustering
   class ListClusters < GLCommand::Callable
+    allows persona_id: Integer
     returns :message
 
     def call
-      clusters = Clustering::Cluster.order(:id).to_a
+      clusters = if persona_id
+                   Clustering::Cluster.for_persona(persona_id).order(:id).to_a
+                 else
+                   Clustering::Cluster.order(:id).includes(:persona).to_a
+                 end
 
       if clusters.empty?
         puts 'No clusters found'
@@ -19,11 +24,15 @@ module Clustering
     private
 
     def print_clusters_table(clusters)
-      puts format('%-5s | %-30s | %-10s', 'ID', 'Name', 'Photos')
-      puts '-' * 50
+      puts format('%-5s | %-20s | %-30s | %-10s', 'ID', 'Persona', 'Name', 'Photos')
+      puts '-' * 70
 
       clusters.each do |cluster|
-        puts format('%-5s | %-30s | %-10s', cluster.id, cluster.name || '(unnamed)', cluster.photos_count)
+        puts format('%-5s | %-20s | %-30s | %-10s', 
+                    cluster.id, 
+                    cluster.persona&.name || '(none)',
+                    cluster.name || '(unnamed)', 
+                    cluster.photos_count)
       end
     end
   end

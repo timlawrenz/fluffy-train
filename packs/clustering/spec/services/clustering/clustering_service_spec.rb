@@ -4,7 +4,8 @@ require 'rails_helper'
 
 RSpec.describe Clustering::ClusteringService do
   describe '#call' do
-    let(:service) { described_class.new(k_clusters: 3) }
+    let(:persona) { FactoryBot.create(:persona) }
+    let(:service) { described_class.new(persona: persona, k_clusters: 3) }
 
     context 'when there are no photos to cluster' do
       it 'returns success with no photos processed' do
@@ -18,7 +19,7 @@ RSpec.describe Clustering::ClusteringService do
 
     context 'when there are photos without embeddings' do
       before do
-        FactoryBot.create(:photo) # Photo without embedding
+        FactoryBot.create(:photo, persona: persona) # Photo without embedding
       end
 
       it 'skips photos without embeddings' do
@@ -31,10 +32,10 @@ RSpec.describe Clustering::ClusteringService do
     end
 
     context 'when there are photos already clustered' do
-      let(:cluster) { FactoryBot.create(:cluster) }
+      let(:cluster) { FactoryBot.create(:cluster, persona: persona) }
 
       before do
-        FactoryBot.create(:photo, embedding: mock_embedding, cluster: cluster)
+        FactoryBot.create(:photo, persona: persona, embedding: mock_embedding, cluster: cluster)
       end
 
       it 'skips photos that already have cluster assignments' do
@@ -101,17 +102,17 @@ RSpec.describe Clustering::ClusteringService do
       end
 
       it 'wraps database operations in a transaction' do
-        # Mock an error during cluster creation to test rollback
-        allow(Clustering::Cluster).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new(Clustering::Cluster.new))
+        # Mock an error during photo update to test rollback
+        allow_any_instance_of(Photo).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(Photo.new))
 
-        expect { service.call }.not_to change(Photo.where.not(cluster_id: nil), :count)
-        expect { service.call }.not_to change(Clustering::Cluster, :count)
+        expect { service.call rescue nil }.not_to change(Photo.where.not(cluster_id: nil), :count)
+        expect { service.call rescue nil }.not_to change(Clustering::Cluster, :count)
       end
     end
 
     context 'when k_clusters is larger than number of photos' do
       let(:persona) { FactoryBot.create(:persona) }
-      let(:service) { described_class.new(k_clusters: 5) }
+      let(:service) { described_class.new(persona: persona, k_clusters: 5) }
 
       before do
         FactoryBot.create(:photo, persona: persona, embedding: mock_embedding_one)
@@ -130,6 +131,7 @@ RSpec.describe Clustering::ClusteringService do
 
     context 'when an error occurs during clustering' do
       let(:persona) { FactoryBot.create(:persona) }
+      let(:service) { described_class.new(persona: persona, k_clusters: 3) }
 
       before do
         FactoryBot.create(:photo, persona: persona, embedding: mock_embedding_one)
@@ -149,13 +151,15 @@ RSpec.describe Clustering::ClusteringService do
   end
 
   describe 'initialization' do
+    let(:persona) { FactoryBot.create(:persona) }
+
     it 'uses default k_clusters when not specified' do
-      service = described_class.new
+      service = described_class.new(persona: persona)
       expect(service.instance_variable_get(:@k_clusters)).to eq(described_class::DEFAULT_K_CLUSTERS)
     end
 
     it 'accepts custom k_clusters value' do
-      service = described_class.new(k_clusters: 10)
+      service = described_class.new(persona: persona, k_clusters: 10)
       expect(service.instance_variable_get(:@k_clusters)).to eq(10)
     end
   end

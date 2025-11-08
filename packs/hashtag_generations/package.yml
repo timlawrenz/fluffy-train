@@ -1,0 +1,8 @@
+metadata:
+  name: hashtag_generations
+  enforce_privacy: false
+  enforce_dependencies: true
+
+dependencies:
+  - content_strategy
+  - personas

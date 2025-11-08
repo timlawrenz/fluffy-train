@@ -1,0 +1,133 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Test caption generation for Sarah persona
+# This script generates test captions without actually calling Ollama
+
+require_relative '../config/environment'
+
+puts "🧪 Testing Caption Generation for Sarah Persona"
+puts "=" * 70
+puts
+
+persona = Persona.find_by(name: 'sarah')
+unless persona
+  puts "❌ Sarah persona not found"
+  exit 1
+end
+
+unless persona.caption_config
+  puts "❌ Sarah has no caption config"
+  exit 1
+end
+
+puts "✓ Persona: #{persona.name}"
+puts "✓ Tone: #{persona.caption_config.tone}"
+puts "✓ Voice: #{persona.caption_config.voice_attributes.join(', ')}"
+puts
+
+# Test scenarios with different contexts
+test_scenarios = [
+  {
+    name: "Coffee Shop Morning",
+    cluster_name: "Coffee Culture",
+    image_description: "A woman in a cozy sweater holding a latte in a sunlit cafe"
+  },
+  {
+    name: "Urban Exploration",
+    cluster_name: "City Streets",
+    image_description: "A woman walking down a narrow street with vintage storefronts"
+  },
+  {
+    name: "Fashion Detail",
+    cluster_name: "Style & Fashion",
+    image_description: "Close-up of a woman in a flowing dress against a brick wall"
+  },
+  {
+    name: "Natural Light Portrait",
+    cluster_name: "Portraits",
+    image_description: "A woman by a window, natural light illuminating her face"
+  },
+  {
+    name: "Everyday Moment",
+    cluster_name: "Lifestyle",
+    image_description: "A woman arranging flowers in a bright, minimal space"
+  }
+]
+
+# Mock recent captions to test repetition avoidance
+recent_captions = [
+  "Just another perfect morning with coffee in hand",
+  "Found this little gem of a cafe downtown",
+  "Morning light makes everything better",
+  "Coffee and contemplation before the day begins",
+  "This cozy corner is becoming my favorite spot"
+]
+
+puts "📝 Generating test captions..."
+puts "=" * 70
+puts
+
+test_scenarios.each_with_index do |scenario, index|
+  puts "\n#{index + 1}. #{scenario[:name]}"
+  puts "   Cluster: #{scenario[:cluster_name]}"
+  puts "   Context: #{scenario[:image_description]}"
+  puts "   " + "-" * 66
+  
+  # Build prompt (simulating what the AI would see)
+  context = {
+    cluster_name: scenario[:cluster_name],
+    image_description: scenario[:image_description]
+  }
+  
+  repetition_avoid = CaptionGenerations::RepetitionChecker.extract_phrases(recent_captions)
+  
+  prompt = CaptionGenerations::PromptBuilder.build(
+    config: persona.caption_config,
+    context: context,
+    avoid_phrases: repetition_avoid
+  )
+  
+  puts "\n   📋 System Prompt Preview (first 300 chars):"
+  puts "   " + prompt[:system][0..300].gsub("\n", "\n   ")
+  puts "   ..."
+  
+  puts "\n   📋 User Prompt:"
+  puts "   " + prompt[:user].gsub("\n", "\n   ")
+  
+  puts "\n   🤖 Expected AI Response Pattern:"
+  puts "   • Should reference moment/feeling, not appearance"
+  puts "   • Should use understated language"
+  puts "   • Should feel discovered, not performed"
+  puts "   • Should include 0-1 emoji"
+  puts "   • Should be 100-150 characters"
+  
+  puts
+end
+
+puts "\n" + "=" * 70
+puts "📊 Analysis"
+puts "=" * 70
+
+puts "\n✅ Caption Config Strengths:"
+puts "  • Tone 'casual' matches 'soft, unassuming charm'"
+puts "  • Voice attributes support authenticity positioning"
+puts "  • Low emoji density prevents over-performance"
+puts "  • Example captions model the 'effortless' narrative"
+
+puts "\n⚠️  Things to Monitor:"
+puts "  • AI may still default to compliments ('beautiful', 'gorgeous')"
+puts "  • Need to ensure moment-focus over appearance-focus"
+puts "  • Repetition checker should catch overused phrases"
+puts "  • Quality score should penalize overt self-awareness"
+
+puts "\n🎯 Recommendation:"
+puts "  Generate 10-20 actual captions with Ollama and evaluate:"
+puts "  1. Does it focus on moment vs. appearance?"
+puts "  2. Does it feel 'discovered' vs. 'performed'?"
+puts "  3. Is the beauty implied rather than stated?"
+puts "  4. Would followers feel connection or intimidation?"
+
+puts "\n💡 To generate real captions:"
+puts "  rake content_strategy:preview_next PERSONA=sarah"
+puts

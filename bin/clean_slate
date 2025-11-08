@@ -1,0 +1,138 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Clean slate: Remove all unposted photos and clusters for fresh start
+
+require_relative '../config/environment'
+
+puts "🧹 CLEAN SLATE: Removing Unposted Photos & Clusters"
+puts "=" * 70
+puts ""
+
+persona_name = ENV['PERSONA'] || 'sarah'
+persona = Persona.find_by(name: persona_name)
+
+unless persona
+  puts "❌ Persona '#{persona_name}' not found"
+  exit 1
+end
+
+puts "📊 Current State for #{persona.name}:"
+puts ""
+
+# Count photos
+total_photos = Photo.where(persona: persona).count
+posted_photo_ids = Scheduling::Post.where(persona: persona)
+                                   .where.not(photo_id: nil)
+                                   .pluck(:photo_id)
+unposted_photos = Photo.where(persona: persona)
+                       .where.not(id: posted_photo_ids)
+
+puts "  Total photos: #{total_photos}"
+puts "  Posted photos: #{posted_photo_ids.count}"
+puts "  Unposted photos: #{unposted_photos.count}"
+puts ""
+
+# Count clusters (that have photos from this persona)
+cluster_ids = Photo.where(persona: persona).pluck(:cluster_id).compact.uniq
+clusters = Clustering::Cluster.where(id: cluster_ids)
+
+puts "  Clusters with #{persona.name}'s photos: #{clusters.count}"
+clusters.each do |cluster|
+  photo_count = cluster.photos.where(persona: persona).count
+  puts "    - #{cluster.name}: #{photo_count} photos"
+end
+puts ""
+
+# Safety check
+if unposted_photos.count == 0 && clusters.count == 0
+  puts "✅ Already clean! Nothing to remove."
+  exit 0
+end
+
+puts "⚠️  WARNING: This will permanently delete:"
+puts "  • #{unposted_photos.count} unposted photos (keeping #{posted_photo_ids.count} posted)"
+puts "  • #{clusters.count} clusters"
+puts "  • All associated photo analysis data"
+puts ""
+puts "This action CANNOT be undone!"
+puts ""
+
+# Require explicit confirmation
+confirm = ENV['CONFIRM']
+if confirm != 'yes'
+  puts "❌ Safety check: Run with CONFIRM=yes to proceed"
+  puts ""
+  puts "Example:"
+  puts "  CONFIRM=yes ruby bin/clean_slate PERSONA=sarah"
+  exit 1
+end
+
+puts "🗑️  Proceeding with cleanup..."
+puts ""
+
+# Remove unposted photos
+deleted_count = 0
+unposted_photos.find_each do |photo|
+  # Remove ActiveStorage attachments
+  photo.image.purge if photo.image.attached?
+  
+  # Remove photo analysis
+  photo.photo_analysis&.destroy
+  
+  # Remove the photo record
+  photo.destroy!
+  deleted_count += 1
+  
+  print "\r  Deleted #{deleted_count}/#{unposted_photos.count} photos..." if deleted_count % 10 == 0
+end
+puts "\r  ✅ Deleted #{deleted_count} unposted photos"
+puts ""
+
+# Remove clusters - but nullify cluster references in posted photos first
+cluster_ids = Photo.where(persona: persona).pluck(:cluster_id).compact.uniq
+clusters = Clustering::Cluster.where(id: cluster_ids)
+
+clusters.each do |cluster|
+  # Check if cluster has photos from other personas
+  other_persona_photos = cluster.photos.where.not(persona_id: persona.id).count
+  
+  if other_persona_photos > 0
+    puts "  Skipping cluster '#{cluster.name}' (has #{other_persona_photos} photos from other personas)"
+  else
+    # Nullify cluster_id in any posted photos from this persona
+    posted_photos_in_cluster = Photo.where(persona: persona, cluster: cluster, id: posted_photo_ids)
+    if posted_photos_in_cluster.any?
+      puts "  Unlinking #{posted_photos_in_cluster.count} posted photos from cluster '#{cluster.name}'"
+      posted_photos_in_cluster.update_all(cluster_id: nil)
+    end
+    
+    # Nullify cluster_id in any scheduling posts
+    Scheduling::Post.where(cluster_id: cluster.id).update_all(cluster_id: nil)
+    
+    puts "  Removing cluster: #{cluster.name}"
+    cluster.destroy!
+  end
+end
+puts "  ✅ Processed #{clusters.count} clusters"
+puts ""
+
+puts "=" * 70
+puts "✅ CLEAN SLATE COMPLETE"
+puts "=" * 70
+puts ""
+
+# Show what remains
+remaining_photos = Photo.where(persona: persona).count
+puts "📊 Final State:"
+puts "  Remaining photos: #{remaining_photos} (all posted)"
+puts "  Clusters: 0"
+puts ""
+puts "🎯 Next Steps:"
+puts "  1. Create staging area: mkdir -p public/#{persona_name}/staging"
+puts "  2. Copy 100 curated photos to staging"
+puts "  3. Import: rake photos:import PERSONA=#{persona_name}"
+puts "  4. Cluster: rake photos:cluster PERSONA=#{persona_name}"
+puts "  5. Review clusters and adjust"
+puts "  6. Start auto-posting!"
+puts ""

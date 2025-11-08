@@ -4,7 +4,8 @@ module Clustering
   class ClusteringService
     DEFAULT_K_CLUSTERS = 20
 
-    def initialize(k_clusters: DEFAULT_K_CLUSTERS)
+    def initialize(persona:, k_clusters: DEFAULT_K_CLUSTERS)
+      @persona = persona
       @k_clusters = k_clusters
     end
 
@@ -21,12 +22,12 @@ module Clustering
 
     private
 
-    attr_reader :k_clusters
+    attr_reader :k_clusters, :persona
 
     def fetch_unclustered_photos
-      Photo.where(cluster_id: nil)
-           .where.not(embedding: nil)
-           .includes(:persona)
+      persona.photos
+             .where(cluster_id: nil)
+             .where.not(embedding: nil)
     end
 
     def build_embeddings_matrix(photos)
@@ -43,7 +44,7 @@ module Clustering
 
     def create_clusters(actual_k)
       (0...actual_k).map do |cluster_index|
-        Clustering::Cluster.create!(
+        persona.clusters.create!(
           name: "Cluster #{cluster_index + 1}",
           status: 0 # active status
         )

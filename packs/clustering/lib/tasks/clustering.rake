@@ -6,18 +6,28 @@ namespace :clustering do
     puts 'Starting photo clustering process...'
 
     begin
-      clustering_service = Clustering::ClusteringService.new
-      result = clustering_service.call
+      personas = Persona.all
+      
+      if personas.empty?
+        puts 'No personas found'
+        next
+      end
 
-      if result[:success]
-        puts result[:message]
-        if result[:photos_processed]&.positive?
-          puts "Photos processed: #{result[:photos_processed]}"
-          puts "Clusters created: #{result[:clusters_created]}" if result[:clusters_created]
+      personas.each do |persona|
+        puts "\nClustering photos for persona: #{persona.name}..."
+        
+        clustering_service = Clustering::ClusteringService.new(persona: persona)
+        result = clustering_service.call
+
+        if result[:success]
+          puts result[:message]
+          if result[:photos_processed]&.positive?
+            puts "Photos processed: #{result[:photos_processed]}"
+            puts "Clusters created: #{result[:clusters_created]}" if result[:clusters_created]
+          end
+        else
+          puts "Error for #{persona.name}: #{result[:error]}"
         end
-      else
-        puts "Error: #{result[:error]}"
-        exit 1
       end
     rescue StandardError => e
       puts "Error: Failed to run clustering service: #{e.message}"

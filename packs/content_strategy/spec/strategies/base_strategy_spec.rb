@@ -1,17 +1,21 @@
 require 'rails_helper'
 
 RSpec.describe ContentStrategy::BaseStrategy do
-  let(:persona) { create(:persona) }
+  let(:persona) { FactoryBot.create(:persona) }
   let(:config) { ContentStrategy::ConfigLoader.load }
   let(:context) { ContentStrategy::Context.new(persona: persona, config: config) }
   
   # Create a concrete strategy for testing
   let(:test_strategy_class) do
     Class.new(described_class) do
+      def self.name
+        'TestStrategy'
+      end
+
       def select_next_photo
         {
           photo: Photo.first,
-          cluster: Cluster.first,
+          cluster: Clustering::Cluster.first,
           optimal_time: Time.current,
           hashtags: ['#test'],
           format: :static
@@ -39,7 +43,7 @@ RSpec.describe ContentStrategy::BaseStrategy do
   end
 
   describe '#get_optimal_posting_time' do
-    let(:photo) { create(:photo) }
+    let(:photo) { FactoryBot.create(:photo) }
 
     it 'calculates optimal time' do
       time = strategy.get_optimal_posting_time(photo: photo)
@@ -55,8 +59,8 @@ RSpec.describe ContentStrategy::BaseStrategy do
   end
 
   describe '#select_hashtags' do
-    let(:photo) { create(:photo) }
-    let(:cluster) { create(:cluster, name: 'Test Cluster') }
+    let(:photo) { FactoryBot.create(:photo) }
+    let(:cluster) { FactoryBot.create(:cluster, name: 'Test Cluster') }
 
     it 'generates hashtags' do
       hashtags = strategy.select_hashtags(photo: photo, cluster: cluster)
@@ -86,7 +90,7 @@ RSpec.describe ContentStrategy::BaseStrategy do
     context 'at max posts' do
       before do
         config.posting_frequency_max.times do
-          post = create(:scheduling_post, persona: persona)
+          post = FactoryBot.create(:scheduling_post, persona: persona)
           ContentStrategy::HistoryRecord.create!(
             persona: persona,
             post: post,
@@ -105,9 +109,9 @@ RSpec.describe ContentStrategy::BaseStrategy do
   end
 
   describe '#after_post' do
-    let(:photo) { create(:photo) }
-    let(:cluster) { create(:cluster) }
-    let(:post) { create(:scheduling_post, persona: persona, photo: photo) }
+    let(:photo) { FactoryBot.create(:photo) }
+    let(:cluster) { FactoryBot.create(:cluster) }
+    let(:post) { FactoryBot.create(:scheduling_post, persona: persona, photo: photo) }
 
     it 'records history' do
       expect {
@@ -137,8 +141,8 @@ RSpec.describe ContentStrategy::BaseStrategy do
   end
 
   describe '#build_decision_context' do
-    let(:photo) { create(:photo) }
-    let(:cluster) { create(:cluster) }
+    let(:photo) { FactoryBot.create(:photo) }
+    let(:cluster) { FactoryBot.create(:cluster) }
 
     it 'includes photo and cluster ids' do
       context_hash = strategy.send(:build_decision_context, photo: photo, cluster: cluster)

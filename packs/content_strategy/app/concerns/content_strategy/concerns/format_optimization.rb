@@ -11,7 +11,21 @@ module ContentStrategy
 
       def generate_hashtags(photo:, cluster:, config:)
         count = rand(config.hashtag_count_min..config.hashtag_count_max)
-        HashtagEngine.generate(photo: photo, cluster: cluster, count: count)
+        persona = context.persona
+        
+        # Use intelligent generation if persona has hashtag strategy
+        if persona.hashtag_strategy.present?
+          result = HashtagGenerations::Generator.generate(
+            photo: photo,
+            persona: persona,
+            cluster: cluster,
+            count: count
+          )
+          result[:hashtags]
+        else
+          # Fallback to basic HashtagEngine
+          HashtagEngine.generate(photo: photo, cluster: cluster, count: count)
+        end
       end
 
       private

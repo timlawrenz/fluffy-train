@@ -124,6 +124,8 @@ RSpec.describe 'clustering:generate Rake Task Integration', type: :integration d
       end
 
       before do
+        # Ensure persona exists but has no photos
+        persona # Force creation of persona
         # Ensure no photos exist with embeddings and no cluster assignments
         Photo.destroy_all
       end
@@ -134,6 +136,7 @@ RSpec.describe 'clustering:generate Rake Task Integration', type: :integration d
         end
 
         expect(output).to include('Starting photo clustering process...')
+        expect(output).to include("Clustering photos for persona: #{persona.name}")
         expect(output).to include('No photos to cluster')
 
         # No clusters should be created

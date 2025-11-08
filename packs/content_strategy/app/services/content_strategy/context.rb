@@ -20,9 +20,9 @@ module ContentStrategy
     end
 
     def available_clusters
-      @available_clusters ||= Clustering::Cluster
+      @available_clusters ||= persona.clusters
         .joins(:photos)
-        .where(photos: { persona_id: persona.id })
+        .where.not(photos: { id: Scheduling::Post.where.not(photo_id: nil).select(:photo_id) })
         .distinct
         .order(:name)
     end

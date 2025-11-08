@@ -4,8 +4,12 @@ module Clustering
   class Cluster < ApplicationRecord
     self.table_name = 'clusters'
 
+    belongs_to :persona
     has_many :photos, class_name: 'Photo', dependent: :nullify
 
+    validates :persona, presence: true
+
+    scope :for_persona, ->(persona_id) { where(persona_id: persona_id) }
     scope :available_for_posting, -> { where.not(id: nil) }
     scope :with_unposted_photos, -> {
       joins(:photos)

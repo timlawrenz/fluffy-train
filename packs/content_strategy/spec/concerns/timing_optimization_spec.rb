@@ -9,7 +9,7 @@ RSpec.describe ContentStrategy::Concerns::TimingOptimization do
   
   let(:instance) { test_class.new }
   let(:config) { ContentStrategy::ConfigLoader.load }
-  let(:persona) { create(:persona) }
+  let(:persona) { FactoryBot.create(:persona) }
   let(:context) { ContentStrategy::Context.new(persona: persona, config: config) }
 
   describe '#calculate_optimal_posting_time' do

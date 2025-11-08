@@ -1,15 +1,15 @@
 require 'rails_helper'
 
 RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
-  let(:persona) { create(:persona) }
+  let(:persona) { FactoryBot.create(:persona) }
   let(:config) { ContentStrategy::ConfigLoader.load }
   let(:context) { ContentStrategy::Context.new(persona: persona, config: config) }
   let(:strategy) { described_class.new(context: context) }
 
   describe '#select_next_photo' do
     context 'with available clusters and photos' do
-      let!(:cluster) { create(:cluster, persona: persona, name: 'Mountains') }
-      let!(:photo) { create(:photo, cluster: cluster, persona: persona) }
+      let!(:cluster) { FactoryBot.create(:cluster, persona: persona, name: 'Mountains') }
+      let!(:photo) { FactoryBot.create(:photo, cluster: cluster, persona: persona) }
 
       it 'returns success with photo and cluster' do
         result = strategy.select_next_photo
@@ -31,13 +31,13 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
     end
 
     context 'when max weekly posts reached' do
-      let!(:cluster) { create(:cluster, persona: persona) }
-      let!(:photo) { create(:photo, cluster: cluster, persona: persona) }
+      let!(:cluster) { FactoryBot.create(:cluster, persona: persona) }
+      let!(:photo) { FactoryBot.create(:photo, cluster: cluster, persona: persona) }
 
       before do
         # Create 5 posts this week (max is 5)
         5.times do
-          post = create(:scheduling_post, persona: persona, photo: photo)
+          post = FactoryBot.create(:scheduling_post, persona: persona, photo: photo)
           ContentStrategy::HistoryRecord.create!(
             persona: persona,
             post: post,
@@ -55,9 +55,9 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
     end
 
     context 'when cluster exhausted' do
-      let!(:cluster) { create(:cluster, persona: persona) }
-      let!(:photo) { create(:photo, cluster: cluster, persona: persona) }
-      let!(:post) { create(:scheduling_post, persona: persona, photo: photo) }
+      let!(:cluster) { FactoryBot.create(:cluster, persona: persona) }
+      let!(:photo) { FactoryBot.create(:photo, cluster: cluster, persona: persona) }
+      let!(:post) { FactoryBot.create(:scheduling_post, persona: persona, photo: photo) }
 
       it 'returns error for no available photos' do
         result = strategy.select_next_photo
@@ -75,10 +75,10 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
     end
 
     context 'week boundary transition' do
-      let!(:cluster1) { create(:cluster, persona: persona, name: 'Mountains') }
-      let!(:cluster2) { create(:cluster, persona: persona, name: 'Cities') }
-      let!(:photo1) { create(:photo, cluster: cluster1, persona: persona) }
-      let!(:photo2) { create(:photo, cluster: cluster2, persona: persona) }
+      let!(:cluster1) { FactoryBot.create(:cluster, persona: persona, name: 'Mountains') }
+      let!(:cluster2) { FactoryBot.create(:cluster, persona: persona, name: 'Cities') }
+      let!(:photo1) { FactoryBot.create(:photo, cluster: cluster1, persona: persona) }
+      let!(:photo2) { FactoryBot.create(:photo, cluster: cluster2, persona: persona) }
 
       it 'switches cluster on new week' do
         # Week 1
@@ -100,7 +100,7 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
   end
 
   describe '#get_or_set_weekly_cluster' do
-    let!(:cluster) { create(:cluster, persona: persona) }
+    let!(:cluster) { FactoryBot.create(:cluster, persona: persona) }
 
     it 'creates state for new week' do
       expect {
@@ -117,8 +117,8 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
   end
 
   describe '#select_new_cluster' do
-    let!(:cluster1) { create(:cluster, persona: persona, name: 'Mountains') }
-    let!(:cluster2) { create(:cluster, persona: persona, name: 'Cities') }
+    let!(:cluster1) { FactoryBot.create(:cluster, persona: persona, name: 'Mountains') }
+    let!(:cluster2) { FactoryBot.create(:cluster, persona: persona, name: 'Cities') }
 
     it 'selects from available clusters' do
       cluster = strategy.send(:select_new_cluster)
@@ -127,7 +127,7 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
     end
 
     it 'returns nil when no clusters available' do
-      Cluster.destroy_all
+      Clustering::Cluster.destroy_all
 
       expect(strategy.send(:select_new_cluster)).to be_nil
     end

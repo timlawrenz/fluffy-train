@@ -141,18 +141,110 @@ Goal: Combine the content strategy engine with the generative AI components to c
 - The final post content scheduled on the social media platform correctly contains the selected image, a thematically appropriate caption, and relevant hashtags.
 - The system correctly logs all key steps of the fully automated process, from selection to generation to scheduling.
 
+## Milestone 5d: Strategy Performance Feedback Loop
+
+### Goal
+Enable the content strategy engine to learn from actual Instagram performance data and self-optimize. Bridge the gap between research-based defaults and persona-specific audience behavior.
+
+### Key Features
+- **Instagram Graph API Integration**: Connect to Instagram Business/Creator accounts to pull insights
+- **Performance Metrics Storage**: New `content_strategy_insights` table linked to posting history
+- **Automated Weekly Insights Collection**: Scheduled job to pull metrics for recent posts
+- **Strategy Performance Dashboard**: Compare predicted vs actual performance
+- **Configuration Auto-Tuning**: Adjust strategy parameters based on empirical data
+- **A/B Testing Framework**: Test posting times, formats, and frequencies systematically
+
+### Technical Components
+
+**Data Collection**:
+- Instagram Graph API client for metrics retrieval
+- Weekly insights job: reach, impressions, engagement, saves, shares, comments
+- Store per-post metrics with 90-day retention
+- Aggregate persona-level statistics
+
+**Analysis Engine**:
+- Compare actual posting times vs engagement rates
+- Identify best-performing formats (Reels vs Carousels)
+- Calculate optimal frequency from engagement per post trends
+- Detect audience activity patterns (best days/times)
+
+**Auto-Optimization**:
+- Tune `optimal_time_start_hour`/`end_hour` based on actual peak engagement
+- Adjust `posting_frequency_min`/`max` if posts show saturation or underutilization
+- Update `format_prefer_reels`/`carousels` based on reach vs engagement tradeoffs
+- Generate monthly performance reports with recommendations
+
+### Database Schema
+
+```sql
+CREATE TABLE content_strategy_insights (
+  id bigserial PRIMARY KEY,
+  persona_id bigint NOT NULL REFERENCES personas(id),
+  scheduling_post_id bigint REFERENCES scheduling_posts(id),
+  
+  -- Timing data
+  posted_at timestamp NOT NULL,
+  day_of_week varchar(10),
+  hour_of_day integer,
+  
+  -- Instagram metrics
+  reach integer,
+  impressions integer,
+  engagement integer,
+  likes integer,
+  comments integer,
+  saves integer,
+  shares integer,
+  
+  -- Calculated metrics
+  engagement_rate decimal(5,2),
+  non_follower_reach_pct decimal(5,2),
+  
+  -- Strategy context
+  strategy_type varchar(50),
+  cluster_id bigint,
+  content_format varchar(20), -- 'reel', 'carousel', 'static'
+  
+  -- Metadata
+  collected_at timestamp NOT NULL DEFAULT NOW(),
+  created_at timestamp NOT NULL DEFAULT NOW(),
+  updated_at timestamp NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_insights_persona_posted ON content_strategy_insights(persona_id, posted_at DESC);
+CREATE INDEX idx_insights_performance ON content_strategy_insights(persona_id, engagement_rate DESC);
+```
+
+### Acceptance Criteria
+- System can authenticate with Instagram Graph API for Business accounts
+- Weekly job successfully pulls insights for all posts from past 7 days
+- Dashboard shows: views per post trend, best posting times heatmap, format performance comparison
+- Auto-tuning detects when actual peak times differ from config by 2+ hours and suggests adjustment
+- A/B test framework can split-test 2 posting windows and report winner after 2 weeks
+- Monthly report generates actionable recommendations (e.g., "Increase Reels by 20%", "Shift timing to 9-11am")
+
+### Success Metrics
+- Persona strategies tune to audience-specific patterns within 30 days
+- Post performance improves 20%+ after first auto-tuning cycle
+- 90% of strategy adjustments improve engagement vs baseline
+- Manual configuration time reduced by 80% (auto-optimization)
+
+---
+
 ## Milestone 6: The Generative Feedback Loop & Self-Optimization
-Goal: Create a self-improving content engine. This final milestone closes the loop by allowing audience engagement to directly influence the creation of new, optimized images.
 
-### Key Features:
-Performance Data Scraper: A script to periodically scrape engagement metrics (likes, comments) for each post made by the application.
-Success Score Algorithm: Calculate a weighted "Success Score" for each post to identify top performers.
-Patch-Level Feature Analysis: For the top 10% of posts, extract patch-level DINO embeddings to identify recurring successful micro-features (e.g., a specific hairstyle, background texture, clothing style).
-Feature-to-Prompt Synthesis: A system to translate these successful visual features into textual concepts.
-Optimized Prompt Generation: Automatically combine the most successful concepts to generate new, high-potential prompts for the FLUX image generation model.
+### Goal
+Create a self-improving content engine. This milestone closes the loop by allowing audience engagement to directly influence the creation of new, optimized images.
 
-### Acceptance Criteria:
-The system can retrieve and store engagement data for all its posts.
-The system can rank all past posts by their Success Score and identify the top performers.
-The system can output a list of at least 10 textual concepts (e.g., "curly hair," "leather jacket," "rainy street") that are statistically correlated with high engagement.
-The system can successfully generate a new, fully-formed prompt ready for use in the FLUX model, representing a "greatest hits" combination of successful elements.
+### Key Features
+- **Performance Data Scraper**: A script to periodically scrape engagement metrics (likes, comments) for each post made by the application (extended from Milestone 5d)
+- **Success Score Algorithm**: Calculate a weighted "Success Score" for each post to identify top performers
+- **Patch-Level Feature Analysis**: For the top 10% of posts, extract patch-level DINO embeddings to identify recurring successful micro-features (e.g., a specific hairstyle, background texture, clothing style)
+- **Feature-to-Prompt Synthesis**: A system to translate these successful visual features into textual concepts
+- **Optimized Prompt Generation**: Automatically combine the most successful concepts to generate new, high-potential prompts for the FLUX image generation model
+
+### Acceptance Criteria
+- The system can retrieve and store engagement data for all its posts (building on 5d infrastructure)
+- The system can rank all past posts by their Success Score and identify the top performers
+- The system can output a list of at least 10 textual concepts (e.g., "curly hair," "leather jacket," "rainy street") that are statistically correlated with high engagement
+- The system can successfully generate a new, fully-formed prompt ready for use in the FLUX model, representing a "greatest hits" combination of successful elements
