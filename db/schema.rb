@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_08_171947) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_08_235530) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -51,6 +51,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_08_171947) do
     t.datetime "updated_at", null: false
     t.bigint "persona_id", null: false
     t.index ["persona_id"], name: "index_clusters_on_persona_id"
+  end
+
+  create_table "content_pillars", force: :cascade do |t|
+    t.bigint "persona_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.decimal "weight", precision: 5, scale: 2, default: "0.0", null: false
+    t.boolean "active", default: true, null: false
+    t.date "start_date"
+    t.date "end_date"
+    t.jsonb "guidelines", default: {}
+    t.integer "target_posts_per_week"
+    t.integer "priority", default: 3, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_content_pillars_on_active"
+    t.index ["persona_id", "name"], name: "index_content_pillars_on_persona_id_and_name", unique: true
+    t.index ["persona_id"], name: "index_content_pillars_on_persona_id"
+    t.check_constraint "end_date IS NULL OR start_date IS NULL OR end_date > start_date", name: "date_range_check"
+    t.check_constraint "priority >= 1 AND priority <= 5", name: "priority_range_check"
+    t.check_constraint "weight >= 0::numeric AND weight <= 100::numeric", name: "weight_range_check"
   end
 
   create_table "content_strategy_histories", force: :cascade do |t|
@@ -108,6 +129,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_08_171947) do
     t.index ["cluster_id"], name: "index_photos_on_cluster_id"
     t.index ["path"], name: "index_photos_on_path", unique: true
     t.index ["persona_id"], name: "index_photos_on_persona_id"
+  end
+
+  create_table "pillar_cluster_assignments", force: :cascade do |t|
+    t.bigint "pillar_id", null: false
+    t.bigint "cluster_id", null: false
+    t.boolean "primary", default: false, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cluster_id"], name: "index_pillar_cluster_assignments_on_cluster_id"
+    t.index ["pillar_id", "cluster_id"], name: "index_pillar_cluster_unique", unique: true
+    t.index ["pillar_id"], name: "index_pillar_cluster_assignments_on_pillar_id"
   end
 
   create_table "scheduling_posts", force: :cascade do |t|
@@ -214,6 +247,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_08_171947) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "clusters", "personas"
+  add_foreign_key "content_pillars", "personas"
   add_foreign_key "content_strategy_histories", "clusters"
   add_foreign_key "content_strategy_histories", "personas"
   add_foreign_key "content_strategy_histories", "scheduling_posts", column: "post_id"
@@ -221,6 +255,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_08_171947) do
   add_foreign_key "photo_analyses", "photos"
   add_foreign_key "photos", "clusters"
   add_foreign_key "photos", "personas"
+  add_foreign_key "pillar_cluster_assignments", "clusters", on_delete: :cascade
+  add_foreign_key "pillar_cluster_assignments", "content_pillars", column: "pillar_id", on_delete: :cascade
   add_foreign_key "scheduling_posts", "clusters"
   add_foreign_key "scheduling_posts", "personas"
   add_foreign_key "scheduling_posts", "photos"
