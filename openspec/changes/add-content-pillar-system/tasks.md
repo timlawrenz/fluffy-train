@@ -10,33 +10,33 @@
 
 ### Migrations
 
-- [ ] Create migration: `content_pillars` table
-  - [ ] Add `persona_id` bigint (FK to personas, NOT NULL, indexed)
-  - [ ] Add `name` string (NOT NULL)
-  - [ ] Add `description` text
-  - [ ] Add `weight` decimal(5,2) (default 0.0, check: >= 0 AND <= 100)
-  - [ ] Add `active` boolean (default true, indexed)
-  - [ ] Add `start_date` date (nullable)
-  - [ ] Add `end_date` date (nullable)
-  - [ ] Add `guidelines` jsonb (default {})
-  - [ ] Add `target_posts_per_week` integer (nullable)
-  - [ ] Add `priority` integer (default 3, check: >= 1 AND <= 5)
-  - [ ] Add timestamps
-  - [ ] Add unique index on `[persona_id, name]`
-  - [ ] Add check constraint: end_date > start_date (when both present)
+- [x] Create migration: `content_pillars` table
+  - [x] Add `persona_id` bigint (FK to personas, NOT NULL, indexed)
+  - [x] Add `name` string (NOT NULL)
+  - [x] Add `description` text
+  - [x] Add `weight` decimal(5,2) (default 0.0, check: >= 0 AND <= 100)
+  - [x] Add `active` boolean (default true, indexed)
+  - [x] Add `start_date` date (nullable)
+  - [x] Add `end_date` date (nullable)
+  - [x] Add `guidelines` jsonb (default {})
+  - [x] Add `target_posts_per_week` integer (nullable)
+  - [x] Add `priority` integer (default 3, check: >= 1 AND <= 5)
+  - [x] Add timestamps
+  - [x] Add unique index on `[persona_id, name]`
+  - [x] Add check constraint: end_date > start_date (when both present)
 
-- [ ] Create migration: `pillar_cluster_assignments` table
-  - [ ] Add `pillar_id` bigint (FK to content_pillars, NOT NULL)
-  - [ ] Add `cluster_id` bigint (FK to clusters, NOT NULL)
-  - [ ] Add `primary` boolean (default false)
-  - [ ] Add `notes` text
-  - [ ] Add timestamps
-  - [ ] Add unique index on `[pillar_id, cluster_id]`
-  - [ ] Add FK constraint with CASCADE on delete
+- [x] Create migration: `pillar_cluster_assignments` table
+  - [x] Add `pillar_id` bigint (FK to content_pillars, NOT NULL)
+  - [x] Add `cluster_id` bigint (FK to clusters, NOT NULL)
+  - [x] Add `primary` boolean (default false)
+  - [x] Add `notes` text
+  - [x] Add timestamps
+  - [x] Add unique index on `[pillar_id, cluster_id]`
+  - [x] Add FK constraint with CASCADE on delete
 
-- [ ] Run migrations in development
-- [ ] Run migrations in test
-- [ ] Verify schema with `db:schema:dump`
+- [x] Run migrations in development
+- [x] Run migrations in test
+- [x] Verify schema with `db:schema:dump`
 
 ---
 
@@ -44,47 +44,47 @@
 
 ### ContentPillar Model
 
-- [ ] Create `packs/content_pillars/` pack
-- [ ] Create `package.yml` with dependencies
-- [ ] Create `ContentPillar` model (`app/models/content_pillar.rb`)
-  - [ ] Add `belongs_to :persona`
-  - [ ] Add `has_many :pillar_cluster_assignments, dependent: :destroy`
-  - [ ] Add `has_many :clusters, through: :pillar_cluster_assignments`
-  - [ ] Add validation: `validates :name, presence: true, uniqueness: { scope: :persona_id }`
-  - [ ] Add validation: `validates :weight, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }`
-  - [ ] Add validation: `validate :end_date_after_start_date`
-  - [ ] Add scope: `scope :active, -> { where(active: true) }`
-  - [ ] Add scope: `scope :current, -> { active.where('start_date IS NULL OR start_date <= ?', Date.current).where('end_date IS NULL OR end_date >= ?', Date.current) }`
-  - [ ] Add scope: `scope :by_priority, -> { order(priority: :desc, weight: :desc) }`
-  - [ ] Add method: `def current?` (checks date range)
-  - [ ] Add method: `def expired?` (past end_date)
+- [x] Create `packs/content_pillars/` pack
+- [x] Create `package.yml` with dependencies
+- [x] Create `ContentPillar` model (`app/models/content_pillar.rb`)
+  - [x] Add `belongs_to :persona`
+  - [x] Add `has_many :pillar_cluster_assignments, dependent: :destroy`
+  - [x] Add `has_many :clusters, through: :pillar_cluster_assignments`
+  - [x] Add validation: `validates :name, presence: true, uniqueness: { scope: :persona_id }`
+  - [x] Add validation: `validates :weight, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }`
+  - [x] Add validation: `validate :end_date_after_start_date`
+  - [x] Add scope: `scope :active, -> { where(active: true) }`
+  - [x] Add scope: `scope :current, -> { active.where('start_date IS NULL OR start_date <= ?', Date.current).where('end_date IS NULL OR end_date >= ?', Date.current) }`
+  - [x] Add scope: `scope :by_priority, -> { order(priority: :desc, weight: :desc) }`
+  - [x] Add method: `def current?` (checks date range)
+  - [x] Add method: `def expired?` (past end_date)
   - [ ] Write specs
 
 ### PillarClusterAssignment Model
 
-- [ ] Create `PillarClusterAssignment` model
-  - [ ] Add `belongs_to :pillar, class_name: 'ContentPillar'`
-  - [ ] Add `belongs_to :cluster, class_name: 'Clustering::Cluster'`
-  - [ ] Add validation: uniqueness of cluster_id scoped to pillar_id
-  - [ ] Add validation: pillar and cluster belong to same persona
+- [x] Create `PillarClusterAssignment` model
+  - [x] Add `belongs_to :pillar, class_name: 'ContentPillar'`
+  - [x] Add `belongs_to :cluster, class_name: 'Clustering::Cluster'`
+  - [x] Add validation: uniqueness of cluster_id scoped to pillar_id
+  - [x] Add validation: pillar and cluster belong to same persona
   - [ ] Write specs
 
 ### Enhanced Cluster Model
 
-- [ ] Update `Clustering::Cluster` model
-  - [ ] Add `has_many :pillar_cluster_assignments, dependent: :destroy`
-  - [ ] Add `has_many :pillars, through: :pillar_cluster_assignments, source: :pillar`
-  - [ ] Add scope: `scope :for_pillar, ->(pillar) { joins(:pillar_cluster_assignments).where(pillar_cluster_assignments: { pillar_id: pillar.id }) }`
-  - [ ] Add method: `def primary_pillar`
-  - [ ] Add method: `def pillar_names`
+- [x] Update `Clustering::Cluster` model
+  - [x] Add `has_many :pillar_cluster_assignments, dependent: :destroy`
+  - [x] Add `has_many :pillars, through: :pillar_cluster_assignments, source: :pillar`
+  - [x] Add scope: `scope :for_pillar, ->(pillar) { joins(:pillar_cluster_assignments).where(pillar_cluster_assignments: { pillar_id: pillar.id }) }`
+  - [x] Add method: `def primary_pillar`
+  - [x] Add method: `def pillar_names`
   - [ ] Write specs
 
 ### Enhanced Persona Model
 
-- [ ] Update `Persona` model
-  - [ ] Add `has_many :content_pillars, dependent: :restrict_with_error`
-  - [ ] Add validation: `validate :total_pillar_weight_valid`
-  - [ ] Add method: `def pillar_weight_total`
+- [x] Update `Persona` model
+  - [x] Add `has_many :content_pillars, dependent: :restrict_with_error`
+  - [x] Add validation: `validate :total_pillar_weight_valid`
+  - [x] Add method: `def pillar_weight_total`
   - [ ] Write specs
 
 ---
@@ -93,22 +93,22 @@
 
 ### Gap Analyzer Service
 
-- [ ] Create `ContentPillars::GapAnalyzer` service
-  - [ ] Add `.analyze(persona, days_ahead: 30)` method
-  - [ ] Calculate posts_needed per pillar (weight-based)
-  - [ ] Count available photos (unposted) per pillar
-  - [ ] Calculate gap (posts_needed - photos_available)
-  - [ ] Return status (:ready, :low, :critical)
+- [x] Create `ContentPillars::GapAnalyzer` service
+  - [x] Add `.analyze(persona, days_ahead: 30)` method
+  - [x] Calculate posts_needed per pillar (weight-based)
+  - [x] Count available photos (unposted) per pillar
+  - [x] Calculate gap (posts_needed - photos_available)
+  - [x] Return status (:ready, :low, :critical)
   - [ ] Write specs
 
 ### Pillar Rotation Service
 
-- [ ] Create `ContentPillars::RotationService` service
-  - [ ] Add `.select_next_pillar(persona)` method
-  - [ ] Implement weighted rotation algorithm
-  - [ ] Consider posting history (underposted pillars prioritized)
-  - [ ] Respect date ranges (exclude expired pillars)
-  - [ ] Respect active status
+- [x] Create `ContentPillars::RotationService` service
+  - [x] Add `.select_next_pillar(persona)` method
+  - [x] Implement weighted rotation algorithm
+  - [x] Consider posting history (underposted pillars prioritized)
+  - [x] Respect date ranges (exclude expired pillars)
+  - [x] Respect active status
   - [ ] Write specs
 
 ---
@@ -117,37 +117,37 @@
 
 ### Pillar-Aware SelectNextPost
 
-- [ ] Update `ContentStrategy::SelectNextPost` command
-  - [ ] Add pillar selection step
-  - [ ] Limit cluster selection to pillar.clusters
-  - [ ] Pass pillar to caption generation
-  - [ ] Pass pillar to hashtag generation
+- [x] Update `ContentStrategy::SelectNextPost` command
+  - [x] Add pillar selection step
+  - [x] Limit cluster selection to pillar.clusters
+  - [x] Pass pillar to caption generation
+  - [x] Pass pillar to hashtag generation
   - [ ] Write integration specs
 
 ### Enhanced Caption Generation
 
-- [ ] Update `CaptionGenerations::PromptBuilder`
-  - [ ] Accept `pillar:` parameter
-  - [ ] Include pillar guidelines in prompt
-  - [ ] Use pillar tone/topics/avoid_topics
+- [x] Update `CaptionGenerations::PromptBuilder`
+  - [x] Accept `pillar:` parameter
+  - [x] Include pillar guidelines in prompt
+  - [x] Use pillar tone/topics/avoid_topics
   - [ ] Write specs
 
 ### Enhanced Hashtag Generation
 
-- [ ] Update `HashtagGenerations::Generator`
-  - [ ] Accept `pillar:` parameter
-  - [ ] Align hashtags with pillar topics
+- [x] Update `HashtagGenerations::Generator`
+  - [x] Accept `pillar:` parameter
+  - [x] Align hashtags with pillar topics
   - [ ] Write specs
 
 ### History Tracking
 
-- [ ] Add `pillar_id` to `content_strategy_histories` table
-  - [ ] Migration to add column
-  - [ ] Add FK constraint
-  - [ ] Add index
-- [ ] Update `ContentStrategy::HistoryRecord` model
-  - [ ] Add `belongs_to :pillar, optional: true`
-  - [ ] Update create calls to include pillar
+- [x] Add `pillar_id` to `content_strategy_histories` table
+  - [x] Migration to add column
+  - [x] Add FK constraint
+  - [x] Add index
+- [x] Update `ContentStrategy::HistoryRecord` model
+  - [x] Add `belongs_to :pillar, optional: true`
+  - [x] Update create calls to include pillar
   - [ ] Write specs
 
 ---
@@ -156,15 +156,15 @@
 
 ### Pillar Management Rake Tasks
 
-- [ ] Create `lib/tasks/pillars.rake`
-  - [ ] Task: `pillars:list` - List all pillars for persona
-  - [ ] Task: `pillars:create` - Create new pillar
-  - [ ] Task: `pillars:show` - Show pillar details
-  - [ ] Task: `pillars:update` - Update pillar attributes
-  - [ ] Task: `pillars:deactivate` - Soft delete pillar
-  - [ ] Task: `pillars:assign_cluster` - Assign cluster to pillar
-  - [ ] Task: `pillars:remove_cluster` - Remove cluster from pillar
-  - [ ] Task: `pillars:gaps` - Show gap analysis
+- [x] Create `lib/tasks/pillars.rake`
+  - [x] Task: `pillars:list` - List all pillars for persona
+  - [x] Task: `pillars:create` - Create new pillar
+  - [x] Task: `pillars:show` - Show pillar details
+  - [x] Task: `pillars:update` - Update pillar attributes
+  - [x] Task: `pillars:deactivate` - Soft delete pillar
+  - [x] Task: `pillars:assign_cluster` - Assign cluster to pillar
+  - [x] Task: `pillars:remove_cluster` - Remove cluster from pillar
+  - [x] Task: `pillars:gaps` - Show gap analysis
   - [ ] Write integration specs
 
 ---
@@ -173,13 +173,13 @@
 
 ### Enhanced Dashboard
 
-- [ ] Update `lib/tasks/content_dashboard.rake`
-  - [ ] Add "Content Pillars & Clusters" section
-  - [ ] Show pillar hierarchy (pillar → clusters → photos)
-  - [ ] Display pillar weights and targets
-  - [ ] Show gap analysis per pillar
-  - [ ] Indicate shared clusters (multiple pillars)
-  - [ ] Provide pillar-specific action items
+- [x] Update `lib/tasks/content_dashboard.rake`
+  - [x] Add "Content Pillars & Clusters" section
+  - [x] Show pillar hierarchy (pillar → clusters → photos)
+  - [x] Display pillar weights and targets
+  - [x] Show gap analysis per pillar
+  - [x] Indicate shared clusters (multiple pillars)
+  - [x] Provide pillar-specific action items
   - [ ] Write specs
 
 ---
