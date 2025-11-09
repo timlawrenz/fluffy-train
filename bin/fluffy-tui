@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative '../config/environment'
+require_relative '../lib/tui/application'
+require_relative '../lib/tui/views/base_view'
+require_relative '../lib/tui/views/dashboard_view'
+require_relative '../lib/tui/views/schedule_view'
+require_relative '../lib/tui/views/cleanup_view'
+
+# Parse arguments
+persona_name = ARGV[0] || 'sarah'
+
+# Find persona
+persona = Persona.find_by(name: persona_name)
+
+unless persona
+  puts "\e[31m❌ Persona '#{persona_name}' not found\e[0m"
+  puts "\nAvailable personas:"
+  Persona.all.each do |p|
+    puts "  - #{p.name}"
+  end
+  exit 1
+end
+
+# Launch TUI
+TUI::Application.new(persona: persona).run
