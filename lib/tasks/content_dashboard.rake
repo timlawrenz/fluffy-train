@@ -33,53 +33,80 @@ namespace :content_strategy do
       .order(:optimal_time_calculated, :created_at)
 
     if scheduled_posts.any?
-      puts "✓ #{scheduled_posts.count} posts in pipeline\n\n"
+      # Separate overdue from future posts
+      overdue_posts = scheduled_posts.select { |p| p.optimal_time_calculated && p.optimal_time_calculated < now }
+      future_posts = scheduled_posts.select { |p| !p.optimal_time_calculated || p.optimal_time_calculated >= now }
       
-      scheduled_posts.each_with_index do |post, i|
-        time_str = if post.optimal_time_calculated
-                     post.optimal_time_calculated.in_time_zone('America/New_York').strftime('%a %b %d, %I:%M %p ET')
-                   else
-                     'Not scheduled'
-                   end
+      if overdue_posts.any?
+        puts "❌ #{overdue_posts.count} OVERDUE posts (should be marked as failed/skipped)\n"
+        overdue_posts.first(3).each do |post|
+          time_str = post.optimal_time_calculated.in_time_zone('America/New_York').strftime('%a %b %d, %I:%M %p ET')
+          days_overdue = ((now - post.optimal_time_calculated) / 1.day).ceil
+          puts "  ❌ #{time_str} (#{days_overdue} days ago)"
+          puts "     Photo: #{post.photo.path.split('/').last}"
+          puts "     Status: #{post.status} - Should be 'failed' or 'skipped'"
+          puts ""
+        end
         
-        days_away = if post.optimal_time_calculated
-                      ((post.optimal_time_calculated - now) / 1.day).ceil
-                    else
-                      nil
-                    end
+        if overdue_posts.count > 3
+          puts "  ... and #{overdue_posts.count - 3} more overdue posts\n"
+        end
+        puts "  ⚡ Action: Mark overdue posts as failed to clean up pipeline\n\n"
+      end
+      
+      if future_posts.any?
+        puts "✓ #{future_posts.count} posts scheduled ahead\n\n"
         
-        status_indicator = case post.status
-                          when 'draft' then '📝'
-                          when 'scheduled' then '⏰'
-                          when 'pending' then '⏳'
-                          else '❓'
-                          end
-        
-        puts "  #{i + 1}. #{status_indicator} #{time_str}"
-        puts "     Photo: #{post.photo.path.split('/').last}"
-        
-        if days_away
-          if days_away < 0
-            puts "     ⚠️  OVERDUE by #{days_away.abs} days"
-          elsif days_away == 0
-            puts "     ⚡ TODAY"
-          elsif days_away == 1
-            puts "     → Tomorrow (#{days_away} day)"
-          else
-            puts "     → In #{days_away} days"
+        future_posts.first(5).each_with_index do |post, i|
+          time_str = if post.optimal_time_calculated
+                       post.optimal_time_calculated.in_time_zone('America/New_York').strftime('%a %b %d, %I:%M %p ET')
+                     else
+                       'Not scheduled'
+                     end
+          
+          days_away = if post.optimal_time_calculated
+                        ((post.optimal_time_calculated - now) / 1.day).ceil
+                      else
+                        nil
+                      end
+          
+          status_indicator = case post.status
+                            when 'draft' then '📝'
+                            when 'scheduled' then '⏰'
+                            when 'pending' then '⏳'
+                            else '❓'
+                            end
+          
+          puts "  #{i + 1}. #{status_indicator} #{time_str}"
+          puts "     Photo: #{post.photo.path.split('/').last}"
+          
+          if days_away
+            if days_away == 0
+              puts "     ⚡ TODAY"
+            elsif days_away == 1
+              puts "     → Tomorrow"
+            else
+              puts "     → In #{days_away} days"
+            end
           end
+          
+          if post.caption
+            preview = post.caption.lines.first&.strip || post.caption[0..60]
+            puts "     Caption: #{preview}..."
+          end
+          puts ""
         end
         
-        if post.caption
-          preview = post.caption.lines.first&.strip || post.caption[0..60]
-          puts "     Caption: #{preview}..."
+        if future_posts.count > 5
+          puts "  ... and #{future_posts.count - 5} more scheduled posts\n\n"
         end
-        puts ""
+      else
+        puts "⚠️  No future posts scheduled\n\n"
       end
 
-      # Coverage calculation
-      if scheduled_posts.any? { |p| p.optimal_time_calculated }
-        latest = scheduled_posts.map(&:optimal_time_calculated).compact.max
+      # Coverage calculation (only for future posts)
+      if future_posts.any? { |p| p.optimal_time_calculated }
+        latest = future_posts.map(&:optimal_time_calculated).compact.max
         days_coverage = ((latest - now) / 1.day).ceil
         puts "✓ Content coverage: #{days_coverage} days ahead"
         
@@ -282,6 +309,17 @@ namespace :content_strategy do
 
     actions = []
     
+    # Priority 0: Clean up overdue posts (blocking issue)
+    overdue_posts = scheduled_posts.select { |p| p.optimal_time_calculated && p.optimal_time_calculated < now }
+    if overdue_posts.any?
+      actions << {
+        priority: "🔴 URGENT",
+        action: "Clean up #{overdue_posts.count} overdue post(s)",
+        command: "Mark as failed/skipped or reschedule",
+        why: "Posts scheduled in the past are polluting the pipeline"
+      }
+    end
+    
     # Priority 1: Content gaps from pillar analysis
     if pillars.any?
       gaps = ContentPillars::GapAnalyzer.new(persona: persona).analyze(days_ahead: 30)
@@ -298,23 +336,24 @@ namespace :content_strategy do
     end
     
     # Priority 2: Check if we need immediate posts
-    immediate_posts = scheduled_posts.select do |p|
+    future_posts = scheduled_posts.select { |p| !p.optimal_time_calculated || p.optimal_time_calculated >= now }
+    immediate_posts = future_posts.select do |p|
       p.optimal_time_calculated && p.optimal_time_calculated < now + 24.hours
     end
     
-    if scheduled_posts.count == 0
+    if future_posts.count == 0
       actions << {
         priority: "🔴 HIGH",
         action: "Schedule first post immediately",
         command: "rails content_strategy:schedule_next PERSONA=#{persona.name}",
         why: "No posts in pipeline"
       }
-    elsif immediate_posts.empty? && scheduled_posts.count < 3
+    elsif immediate_posts.empty? && future_posts.count < 3
       actions << {
         priority: "🟡 MEDIUM",
         action: "Schedule next post",
         command: "rails content_strategy:schedule_next PERSONA=#{persona.name}",
-        why: "Only #{scheduled_posts.count} post(s) scheduled, need buffer"
+        why: "Only #{future_posts.count} post(s) scheduled, need buffer"
       }
     end
     
