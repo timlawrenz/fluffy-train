@@ -153,14 +153,11 @@ module TUI
         print_header("Create New Cluster")
 
         name = prompt.ask("Cluster name:", required: true)
-        description = prompt.ask("Description (optional):")
-        theme = prompt.ask("Theme/hashtag (optional):")
 
         cluster = Clustering::Cluster.create!(
           persona: persona,
           name: name,
-          description: description,
-          theme: theme
+          status: 'active'
         )
 
         puts "\n#{success("Created cluster: #{cluster.name}")}"

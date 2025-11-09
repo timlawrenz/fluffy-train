@@ -2,6 +2,11 @@
 # frozen_string_literal: true
 
 require_relative '../config/environment'
+
+# Ensure all models are loaded
+require_relative '../packs/scheduling/app/models/scheduling/post'
+require_relative '../packs/clustering/app/models/clustering/cluster'
+
 require_relative '../lib/tui/application'
 require_relative '../lib/tui/views/base_view'
 require_relative '../lib/tui/views/dashboard_view'
@@ -12,8 +17,8 @@ require_relative '../lib/tui/views/pillar_view'
 # Parse arguments
 persona_name = ARGV[0] || 'sarah'
 
-# Find persona
-persona = Persona.find_by(name: persona_name)
+# Find persona with associations preloaded
+persona = Persona.includes(:posts, :clusters, :content_pillars).find_by(name: persona_name)
 
 unless persona
   puts "\e[31m❌ Persona '#{persona_name}' not found\e[0m"
