@@ -83,7 +83,7 @@ module CaptionGenerations
         prompt[:user],
         system: prompt[:system],
         temperature: 0.8,
-        max_tokens: 800,
+        max_tokens: 1500,
         image_path: @photo.path
       )
       
@@ -113,10 +113,10 @@ module CaptionGenerations
 
     def length_target(length_type)
       case length_type.to_s
-      when 'short' then 275
-      when 'medium' then 450
-      when 'long' then 675
-      else 450
+      when 'short' then 375
+      when 'medium' then 575
+      when 'long' then 850
+      else 575
       end
     end
 

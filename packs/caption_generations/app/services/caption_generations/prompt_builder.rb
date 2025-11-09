@@ -31,13 +31,14 @@ module CaptionGenerations
         #{topics_text}
         #{avoid_topics_text}
         
-        IMPORTANT: Write engaging, authentic captions that tell a story or share a moment. 
-        Good Instagram captions draw readers in and create connection.
+        IMPORTANT: Write engaging, authentic captions that tell a rich story or share a meaningful moment. 
+        Good Instagram captions draw readers in, create connection, and provide genuine value.
         #{length_guidance_text}
         #{emoji_guidance_text}
         
-        Write 3-5 sentences that feel natural and conversational. Share a thought, feeling, or observation.
-        Create captions that are substantial enough to engage readers while maintaining authenticity.
+        Write 4-7 sentences that feel natural and conversational. Share thoughts, feelings, observations, or context.
+        Create captions that are substantial, engaging, and authentic - don't be afraid to add personality and detail.
+        Paint a picture with words that complements what's in the photo.
         
         #{avoid_phrases_text}
       PROMPT
@@ -45,14 +46,16 @@ module CaptionGenerations
 
     def build_user_prompt
       <<~PROMPT.strip
-        Write an Instagram caption for this image. Look at the image carefully and incorporate what you see.
+        Write an Instagram caption for this image. Look at the image carefully and incorporate specific details you see - 
+        describe the setting, mood, colors, lighting, or atmosphere. Make it vivid and engaging.
         
         #{context_text}
         
         #{example_captions_text}
         
         Generate a single caption that matches the style and tone described. 
-        Write 3-5 complete sentences that tell a story or share a genuine moment.
+        Write 4-7 complete sentences that tell a rich story or share a genuine, detailed moment.
+        Be specific about what you observe in the image to create authentic connection.
         Do not include hashtags - they will be added separately.
       PROMPT
     end
@@ -85,13 +88,13 @@ module CaptionGenerations
     def length_guidance_text
       case @config.style[:avg_length]
       when 'short'
-        '- Target length: 200-350 characters (2-3 engaging sentences)'
+        '- Target length: 300-450 characters (3-4 engaging sentences)'
       when 'medium'
-        '- Target length: 350-550 characters (3-4 sentences with detail)'
+        '- Target length: 450-700 characters (4-6 sentences with detail and personality)'
       when 'long'
-        '- Target length: 550-800 characters (4-6 sentences, rich narrative)'
+        '- Target length: 700-1000 characters (6-8 sentences, rich narrative with vivid details)'
       else
-        '- Target length: 350-550 characters (3-4 sentences with detail)'
+        '- Target length: 450-700 characters (4-6 sentences with detail and personality)'
       end
     end
 

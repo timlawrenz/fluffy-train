@@ -12,14 +12,14 @@ module TUI
           puts
           show_menu
           choice = prompt.select("What would you like to do?") do |menu|
-            menu.choice "Generate prompts for a pillar", :generate
+            menu.choice "Generate cluster suggestions for a pillar", :generate
             menu.choice "View saved prompts", :view
             menu.choice "Back to main menu", :back
           end
           
           case choice
           when :generate
-            generate_prompts
+            generate_cluster_suggestions
           when :view
             view_saved_prompts
           when :back
@@ -32,12 +32,12 @@ module TUI
       
       def show_menu
         puts
-        puts "This tool uses Ollama + Gemma 3 to generate detailed image creation prompts."
-        puts "Each prompt includes scene description, outfit details, and mood guidance."
+        puts "This tool uses Ollama + Gemma 3 to generate cluster suggestions."
+        puts "Each suggestion includes a cluster title and detailed creation prompt."
         puts
       end
       
-      def generate_prompts
+      def generate_cluster_suggestions
         pillars = ContentPillar.where(persona: @persona).order(:name)
         
         if pillars.empty?
@@ -59,7 +59,7 @@ module TUI
         count = [[count, 1].max, 5].min # Clamp between 1-5
         
         puts
-        puts pastel.cyan("🤖 Generating #{count} AI prompts for: #{pillar.name}")
+        puts pastel.cyan("🤖 Generating #{count} cluster suggestions for: #{pillar.name}")
         puts pastel.dim("This may take 30-60 seconds...")
         puts
         
@@ -72,11 +72,74 @@ module TUI
           return
         end
         
-        display_prompts(prompts, pillar)
+        # Create clusters from generated prompts
+        created_clusters = []
+        prompts.each_with_index do |p, idx|
+          cluster_name = generate_cluster_name(p, pillar, idx)
+          
+          cluster = Clustering::Cluster.create!(
+            persona: @persona,
+            name: cluster_name,
+            ai_prompt: p[:full_prompt]
+          )
+          
+          # Link to pillar
+          PillarClusterAssignment.create!(
+            pillar: pillar,
+            cluster: cluster,
+            primary: true
+          )
+          
+          created_clusters << cluster
+        end
         
-        if prompt.yes?("\nSave these prompts to a file?")
+        display_created_clusters(created_clusters, pillar)
+        
+        if prompt.yes?("\nAlso save prompts to a file?")
           save_prompts_to_file(prompts, pillar)
         end
+      end
+      
+      def generate_cluster_name(prompt_data, pillar, index)
+        # Try to extract a meaningful name from the scene or create a generic one
+        if prompt_data[:scene] && prompt_data[:scene].length > 10
+          # Take first few words of scene description
+          words = prompt_data[:scene].split(/[\s,]+/).first(4).join(' ')
+          words.capitalize
+        else
+          "#{pillar.name} - Cluster #{index + 1}"
+        end
+      end
+      
+      def display_created_clusters(clusters, pillar)
+        puts
+        puts pastel.bold.green("✓ Created #{clusters.size} new clusters for: #{pillar.name}")
+        puts
+        
+        clusters.each_with_index do |cluster, idx|
+          puts pastel.bold.cyan("━" * terminal_width)
+          puts pastel.bold("  CLUSTER #{idx + 1}: #{cluster.name}")
+          puts pastel.bold.cyan("━" * terminal_width)
+          puts
+          
+          # Show the AI prompt
+          wrapped = TTY::Box.frame(
+            cluster.ai_prompt,
+            padding: 1,
+            border: :thick,
+            title: { top_left: " AI Generation Prompt " }
+          )
+          puts wrapped
+          puts
+        end
+        
+        puts pastel.bold.cyan("━" * terminal_width)
+        puts
+        puts pastel.green("Next steps:")
+        puts "  1. Use these prompts to generate images with ComfyUI/Stable Diffusion"
+        puts "  2. Import the generated photos: bin/import [persona] [directory]"
+        puts "  3. Add photos to these clusters in Pillars & Clusters menu"
+        puts
       end
       
       def display_prompts(prompts, pillar)
