@@ -4,6 +4,7 @@ class Persona < ApplicationRecord
   has_many :photos, dependent: :destroy
   has_many :clusters, class_name: 'Clustering::Cluster', dependent: :restrict_with_error
   has_many :content_pillars, dependent: :restrict_with_error
+  has_many :posts, class_name: 'Scheduling::Post', dependent: :restrict_with_error
 
   validates :name, presence: true, uniqueness: true
   validate :total_pillar_weight_valid

@@ -22,9 +22,9 @@ module TUI
 
       def fetch_overdue_posts
         persona.posts
-               .where('optimal_time < ?', Time.current)
+               .where('scheduled_at < ?', Time.current)
                .where(status: ['scheduled', 'pending'])
-               .order(:optimal_time)
+               .order(:scheduled_at)
       end
 
       def show_overdue_list(posts)
@@ -32,8 +32,8 @@ module TUI
 
         now = Time.current
         posts.each_with_index do |post, i|
-          days = ((now - post.optimal_time) / 1.day).to_i
-          puts "  #{i + 1}. #{post.optimal_time.strftime('%m/%d %H:%M')} " +
+          days = ((now - post.scheduled_at) / 1.day).to_i
+          puts "  #{i + 1}. #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
                pastel.red("(#{days}d overdue)") +
                " - #{truncate(post.caption, 50)}"
         end
@@ -71,9 +71,9 @@ module TUI
 
       def select_and_mark(posts)
         choices = posts.map.with_index do |post, i|
-          days = ((Time.current - post.optimal_time) / 1.day).to_i
+          days = ((Time.current - post.scheduled_at) / 1.day).to_i
           {
-            name: "#{post.optimal_time.strftime('%m/%d %H:%M')} (#{days}d overdue) - #{truncate(post.caption, 40)}",
+            name: "#{post.scheduled_at.strftime('%m/%d %H:%M')} (#{days}d overdue) - #{truncate(post.caption, 40)}",
             value: post.id
           }
         end

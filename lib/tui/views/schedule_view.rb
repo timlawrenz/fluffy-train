@@ -46,7 +46,7 @@ module TUI
         puts "\n#{pastel.bold('Pillar:')} #{result[:pillar]&.name || 'None'}"
         puts "#{pastel.bold('Cluster:')} #{result[:cluster]&.name || 'None'}"
         puts "#{pastel.bold('Photo:')} #{result[:photo].filename}"
-        puts "#{pastel.bold('Optimal Time:')} #{result[:optimal_time].strftime('%A, %B %-d at %-I:%M %p')}"
+        puts "#{pastel.bold('Scheduled Time:')} #{result[:scheduled_at].strftime('%A, %B %-d at %-I:%M %p')}"
 
         puts "\n#{pastel.bold('Caption:')}"
         puts pastel.dim("─" * 80)
@@ -82,11 +82,11 @@ module TUI
           photo: result[:photo],
           caption: result[:caption],
           hashtags: result[:hashtags],
-          optimal_time: result[:optimal_time],
+          scheduled_at: result[:scheduled_at],
           status: 'scheduled'
         )
 
-        puts "\n#{success("Post scheduled for #{result[:optimal_time].strftime('%m/%d at %-I:%M %p')}")}"
+        puts "\n#{success("Post scheduled for #{result[:scheduled_at].strftime('%m/%d at %-I:%M %p')}")}"
         wait_for_key
       rescue StandardError => e
         puts "\n#{error("Failed to schedule: #{e.message}")}"

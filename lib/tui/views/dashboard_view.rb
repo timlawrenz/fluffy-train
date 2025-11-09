@@ -18,19 +18,19 @@ module TUI
       private
 
       def show_scheduled_posts
-        posts = persona.posts.where(status: ['scheduled', 'pending']).order(:optimal_time)
+        posts = persona.posts.where(status: ['scheduled', 'pending']).order(:scheduled_at)
         now = Time.current
 
-        overdue = posts.where('optimal_time < ?', now)
-        upcoming = posts.where('optimal_time >= ?', now).limit(5)
+        overdue = posts.where('scheduled_at < ?', now)
+        upcoming = posts.where('scheduled_at >= ?', now).limit(5)
 
         puts section_header("SCHEDULED POSTS")
 
         if overdue.any?
           puts error("#{overdue.count} overdue posts need attention")
           overdue.limit(3).each do |post|
-            days = ((now - post.optimal_time) / 1.day).to_i
-            puts "  #{pastel.red('▶')} #{post.optimal_time.strftime('%m/%d %H:%M')} " +
+            days = ((now - post.scheduled_at) / 1.day).to_i
+            puts "  #{pastel.red('▶')} #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
                  pastel.dim("(#{days}d ago)") + " - #{truncate(post.caption, 50)}"
           end
           puts pastel.dim("  ... and #{overdue.count - 3} more") if overdue.count > 3
@@ -42,8 +42,8 @@ module TUI
         if upcoming.any?
           puts info("#{upcoming.count} upcoming posts scheduled")
           upcoming.each do |post|
-            days = ((post.optimal_time - now) / 1.day).to_i
-            puts "  #{pastel.green('▶')} #{post.optimal_time.strftime('%m/%d %H:%M')} " +
+            days = ((post.scheduled_at - now) / 1.day).to_i
+            puts "  #{pastel.green('▶')} #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
                  pastel.dim("(in #{days}d)") + " - #{truncate(post.caption, 50)}"
           end
         else
@@ -95,7 +95,7 @@ module TUI
         actions = []
 
         # Check for overdue cleanup
-        overdue_count = persona.posts.where('optimal_time < ? AND status IN (?)',
+        overdue_count = persona.posts.where('scheduled_at < ? AND status IN (?)',
                                             Time.current, ['scheduled', 'pending']).count
         if overdue_count > 0
           actions << {
@@ -129,7 +129,7 @@ module TUI
 
         # Check for pending publishes
         pending = persona.posts.where(status: 'scheduled').
-                         where('optimal_time <= ?', Time.current + 1.hour).count
+                         where('scheduled_at <= ?', Time.current + 1.hour).count
         if pending > 0
           actions << {
             priority: 2,
