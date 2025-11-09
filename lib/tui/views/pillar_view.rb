@@ -40,33 +40,46 @@ module TUI
 
         if pillars.empty?
           puts info("No pillars created yet")
-          return
+        else
+          pillars.each do |pillar|
+            clusters = pillar.clusters
+            total_photos = clusters.sum { |c| c.photos.count }
+            unposted = clusters.sum { |c| c.photos.unposted.count }
+
+            status = total_photos > 0 ? "✅" : "🚫"
+            puts "\n#{status} #{pastel.bold(pillar.name)} (#{pillar.weight}% weight, priority: #{pillar.priority})"
+            puts "    #{clusters.count} clusters, #{total_photos} photos total, #{unposted} unposted"
+            
+            if pillar.start_date && pillar.end_date
+              puts "    Active: #{pillar.start_date.strftime('%m/%d')} - #{pillar.end_date.strftime('%m/%d')}"
+            end
+
+            if total_photos < 10
+              puts "    #{pastel.red('⚠️  LOW INVENTORY - need more photos!')}"
+            end
+
+            if clusters.any?
+              puts "    Clusters:"
+              clusters.each do |cluster|
+                photos = cluster.photos.count
+                unposted_cluster = cluster.photos.unposted.count
+                puts "      • #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
+              end
+            end
+          end
         end
 
-        pillars.each do |pillar|
-          clusters = pillar.clusters
-          total_photos = clusters.sum { |c| c.photos.count }
-          unposted = clusters.sum { |c| c.photos.unposted.count }
-
-          status = total_photos > 0 ? "✅" : "🚫"
-          puts "\n#{status} #{pastel.bold(pillar.name)} (#{pillar.weight}% weight, priority: #{pillar.priority})"
-          puts "    #{clusters.count} clusters, #{total_photos} photos total, #{unposted} unposted"
-          
-          if pillar.start_date && pillar.end_date
-            puts "    Active: #{pillar.start_date.strftime('%m/%d')} - #{pillar.end_date.strftime('%m/%d')}"
-          end
-
-          if total_photos < 10
-            puts "    #{pastel.red('⚠️  LOW INVENTORY - need more photos!')}"
-          end
-
-          if clusters.any?
-            puts "    Clusters:"
-            clusters.each do |cluster|
-              photos = cluster.photos.count
-              unposted_cluster = cluster.photos.unposted.count
-              puts "      • #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
-            end
+        # Show unlinked clusters
+        unlinked = Clustering::Cluster.where(persona: persona)
+                                      .where.not(id: PillarClusterAssignment.select(:cluster_id))
+                                      .order(:name)
+        
+        if unlinked.any?
+          puts "\n#{pastel.yellow('⚠️  Unlinked Clusters')} (#{unlinked.count})"
+          unlinked.each do |cluster|
+            photos = cluster.photos.count
+            unposted_cluster = cluster.photos.unposted.count
+            puts "    • #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
           end
         end
       end

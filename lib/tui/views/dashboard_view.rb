@@ -153,6 +153,8 @@ module TUI
         puts pastel.dim("Shortcuts: [u] cleanup  [c] clusters  [s] schedule  [p] publish  [q] back")
 
         puts "\nPress a key or [q] to return to menu"
+        
+        require 'io/console'
         choice = STDIN.getch
 
         case choice
