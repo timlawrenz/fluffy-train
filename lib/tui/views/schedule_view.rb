@@ -21,11 +21,11 @@ module TUI
       private
 
       def select_next_post
-        service = ContentStrategy::SelectNextPost.new(persona: persona)
+        service = ContentStrategy::PreparePostContent.new(persona: persona)
         result = service.call
 
-        if result[:error]
-          return { error: result[:error] }
+        unless result[:success]
+          return { error: result[:error] || 'Unknown error' }
         end
 
         {
