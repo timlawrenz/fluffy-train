@@ -32,7 +32,6 @@ module TUI
         menu.choice "🎯 Pillars & Clusters", :pillars
         menu.choice "📷 Browse Photos", :photos
         menu.choice "📅 Schedule Post", :schedule
-        menu.choice "🚀 Publish Pending", :publish
         menu.choice "🧹 Cleanup Overdue", :cleanup
         menu.choice "❌ Exit", :exit
       end
@@ -49,9 +48,6 @@ module TUI
         prompt.keypress("\nPress any key to continue", timeout: 3)
       when :schedule
         Views::ScheduleView.new(persona: persona).display
-      when :publish
-        puts pastel.yellow("\n🚧 Publish view coming soon...")
-        prompt.keypress("\nPress any key to continue", timeout: 3)
       when :cleanup
         Views::CleanupView.new(persona: persona).display
       when :exit
