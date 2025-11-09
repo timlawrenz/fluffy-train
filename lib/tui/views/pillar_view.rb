@@ -156,8 +156,7 @@ module TUI
 
         cluster = Clustering::Cluster.create!(
           persona: persona,
-          name: name,
-          status: 'active'
+          name: name
         )
 
         puts "\n#{success("Created cluster: #{cluster.name}")}"
@@ -183,8 +182,6 @@ module TUI
 
         action = prompt.select("What to change?") do |menu|
           menu.choice "Name", :name
-          menu.choice "Description", :description
-          menu.choice "Theme", :theme
           menu.choice "Link to pillar", :link if ContentPillar.where(persona: persona).any?
           menu.choice "Remove photos", :remove_photos if cluster.photos.any?
           menu.choice "Delete cluster", :delete
@@ -194,10 +191,6 @@ module TUI
         case action
         when :name
           cluster.update!(name: prompt.ask("New name:", default: cluster.name))
-        when :description
-          cluster.update!(description: prompt.ask("New description:", default: cluster.description))
-        when :theme
-          cluster.update!(theme: prompt.ask("New theme:", default: cluster.theme))
         when :link
           link_cluster_to_pillar(cluster)
         when :remove_photos
@@ -234,12 +227,12 @@ module TUI
         selected = prompt.multi_select("Link to which pillars? (space to select, enter to confirm):", choices, per_page: 10)
 
         # Remove all existing links
-        Clustering::ClusterPillar.where(cluster: cluster).destroy_all
+        PillarClusterAssignment.where(cluster: cluster).destroy_all
 
         # Create new links
         selected.compact.each do |pillar_id|
           pillar = ContentPillar.find(pillar_id)
-          Clustering::ClusterPillar.create!(cluster: cluster, pillar: pillar)
+          PillarClusterAssignment.create!(cluster: cluster, pillar: pillar)
         end
 
         puts success("Updated pillar links for #{cluster.name}")

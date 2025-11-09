@@ -18,7 +18,7 @@ module TUI
       private
 
       def show_scheduled_posts
-        posts = persona.posts.where(status: ['scheduled', 'pending']).order(:scheduled_at)
+        posts = Scheduling::Post.where(persona: persona, status: ['scheduled', 'pending']).order(:scheduled_at)
         now = Time.current
 
         overdue = posts.where('scheduled_at < ?', now)
@@ -31,7 +31,7 @@ module TUI
           overdue.limit(3).each do |post|
             days = ((now - post.scheduled_at) / 1.day).to_i
             puts "  #{pastel.red('▶')} #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
-                 pastel.dim("(#{days}d ago)") + " - #{truncate(post.caption, 50)}"
+                 pastel.dim("(#{days}d ago)") + " - #{truncate(post.caption || 'No caption', 50)}"
           end
           puts pastel.dim("  ... and #{overdue.count - 3} more") if overdue.count > 3
         else
@@ -44,7 +44,7 @@ module TUI
           upcoming.each do |post|
             days = ((post.scheduled_at - now) / 1.day).to_i
             puts "  #{pastel.green('▶')} #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
-                 pastel.dim("(in #{days}d)") + " - #{truncate(post.caption, 50)}"
+                 pastel.dim("(in #{days}d)") + " - #{truncate(post.caption || 'No caption', 50)}"
           end
         else
           puts warning("No upcoming posts scheduled")
@@ -95,7 +95,7 @@ module TUI
         actions = []
 
         # Check for overdue cleanup
-        overdue_count = persona.posts.where('scheduled_at < ? AND status IN (?)',
+        overdue_count = Scheduling::Post.where(persona: persona).where('scheduled_at < ? AND status IN (?)',
                                             Time.current, ['scheduled', 'pending']).count
         if overdue_count > 0
           actions << {
@@ -128,7 +128,7 @@ module TUI
         end
 
         # Check for pending publishes
-        pending = persona.posts.where(status: 'scheduled').
+        pending = Scheduling::Post.where(persona: persona, status: 'scheduled').
                          where('scheduled_at <= ?', Time.current + 1.hour).count
         if pending > 0
           actions << {
@@ -152,15 +152,16 @@ module TUI
         puts "\n" + pastel.dim("─" * 80)
         puts pastel.dim("Shortcuts: [u] cleanup  [c] clusters  [s] schedule  [p] publish  [q] back")
 
-        choice = prompt.keypress("\nPress a key or [q] to return to menu:", keys: [:keypress])
+        puts "\nPress a key or [q] to return to menu"
+        choice = STDIN.getch
 
         case choice
         when 'u'
           CleanupView.new(persona: persona).display
           display # Redisplay dashboard after action
         when 'c'
-          puts "\n#{warning('Pillars view coming soon...')}"
-          wait_for_key
+          PillarView.new(persona: persona).display
+          display # Redisplay dashboard after action
         when 's'
           ScheduleView.new(persona: persona).display
           display # Redisplay dashboard after action

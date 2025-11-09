@@ -21,7 +21,7 @@ module TUI
       private
 
       def fetch_overdue_posts
-        persona.posts
+        Scheduling::Post.where(persona: persona)
                .where('scheduled_at < ?', Time.current)
                .where(status: ['scheduled', 'pending'])
                .order(:scheduled_at)
@@ -35,7 +35,7 @@ module TUI
           days = ((now - post.scheduled_at) / 1.day).to_i
           puts "  #{i + 1}. #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
                pastel.red("(#{days}d overdue)") +
-               " - #{truncate(post.caption, 50)}"
+               " - #{truncate(post.caption || 'No caption', 50)}"
         end
 
         puts "\n#{warning("Total: #{posts.count} overdue posts")}"
@@ -73,7 +73,7 @@ module TUI
         choices = posts.map.with_index do |post, i|
           days = ((Time.current - post.scheduled_at) / 1.day).to_i
           {
-            name: "#{post.scheduled_at.strftime('%m/%d %H:%M')} (#{days}d overdue) - #{truncate(post.caption, 40)}",
+            name: "#{post.scheduled_at.strftime('%m/%d %H:%M')} (#{days}d overdue) - #{truncate(post.caption || 'No caption', 40)}",
             value: post.id
           }
         end
