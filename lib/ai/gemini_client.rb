@@ -6,7 +6,7 @@ require 'base64'
 
 module AI
   class GeminiClient
-    DEFAULT_MODEL = 'gemini-2.5-pro-002'
+    DEFAULT_MODEL = 'gemini-1.5-pro-latest'
     API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
     
     def initialize(api_key: nil, model: DEFAULT_MODEL)
@@ -68,6 +68,10 @@ module AI
       else
         raise "Gemini API error: #{response.status} - #{response.body}"
       end
+    end
+    
+    def generate_text(prompt, temperature: 0.7, max_tokens: 2000)
+      generate(prompt, temperature: temperature, max_tokens: max_tokens)
     end
     
     def available?

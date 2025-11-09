@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative 'ollama_client'
+require_relative 'gemini_client'
 
 module AI
   class ContentPromptGenerator
     def initialize(persona)
       @persona = persona
-      @client = OllamaClient.new
+      @client = GeminiClient.new
     end
     
     def generate_creation_prompts(pillar, count: 3)
@@ -15,12 +15,9 @@ module AI
       system_prompt = build_system_prompt
       user_prompt = build_user_prompt(pillar, count)
       
-      messages = [
-        { role: 'system', content: system_prompt },
-        { role: 'user', content: user_prompt }
-      ]
+      full_prompt = "#{system_prompt}\n\n#{user_prompt}"
       
-      response = @client.chat(messages, temperature: 0.8, max_tokens: 3000)
+      response = @client.generate_text(full_prompt, temperature: 0.8, max_tokens: 3000)
       parse_prompts(response)
     rescue => e
       puts "AI prompt generation failed: #{e.message}" if defined?(Rails)

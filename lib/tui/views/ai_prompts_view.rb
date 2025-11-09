@@ -32,7 +32,7 @@ module TUI
       
       def show_menu
         puts
-        puts "This tool uses Ollama + Gemma 3 to generate cluster suggestions."
+        puts "This tool uses Gemini 2.5 Pro to generate cluster suggestions."
         puts "Each suggestion includes a cluster title and detailed creation prompt."
         puts
       end
@@ -68,7 +68,7 @@ module TUI
         
         if prompts.empty?
           puts pastel.red("\n✗ Failed to generate prompts")
-          puts "Check that Ollama is running: ollama list"
+          puts "Check that GEMINI_API_KEY is set"
           return
         end
         
