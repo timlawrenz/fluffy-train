@@ -151,13 +151,12 @@ namespace :content_strategy do
     puts "\n"
 
     # ========================================================================
-    # C) CONTENT PILLARS → CLUSTERS MAPPING
+    # C) CONTENT PILLARS & CLUSTERS
     # ========================================================================
     puts "📚 CONTENT PILLARS & CLUSTERS"
     puts "-" * 80
 
-    # Get all clusters for persona
-    clusters = persona.clusters.order(:name)
+    pillars = persona.content_pillars.active.by_priority
     
     # Get all posted photo IDs once
     posted_photo_ids = Scheduling::Post
@@ -165,54 +164,112 @@ namespace :content_strategy do
       .where.not(photo_id: nil)
       .pluck(:photo_id)
     
-    if clusters.any?
-      puts "Available themes (#{clusters.count} clusters):\n\n"
+    if pillars.any?
+      # Run gap analysis
+      analyzer = ContentPillars::GapAnalyzer.new(persona: persona)
+      gaps = analyzer.analyze(days_ahead: 30)
       
-      clusters.each do |cluster|
-        total_photos = cluster.photos.where(persona: persona).count
-        unposted = total_photos - cluster.photos.where(id: posted_photo_ids).count
-        last_used = cluster.last_posted_at
+      puts "Active Pillars (#{pillars.count}):\n\n"
+      
+      pillars.each do |pillar|
+        gap_data = gaps.find { |g| g[:pillar].id == pillar.id }
         
-        status = if unposted == 0
-                  "🚫 EXHAUSTED"
-                elsif last_used && (now - last_used) / 1.day < 3
-                  "🔥 RECENT"
-                elsif unposted < 3
-                  "⚠️  LOW"
-                else
-                  "✅ READY"
-                end
+        # Pillar header
+        status_icon = case gap_data&.dig(:status)
+                      when :exhausted then '🚫'
+                      when :critical then '🔴'
+                      when :low then '⚠️ '
+                      when :ready then '✅'
+                      else '➖'
+                      end
         
-        puts "  #{status} #{cluster.name}"
-        puts "      #{total_photos} photos total, #{unposted} unposted"
+        current_indicator = pillar.current? ? '' : ' [EXPIRED]'
+        date_range = if pillar.start_date || pillar.end_date
+                      " (#{[pillar.start_date, pillar.end_date].compact.join(' → ')})"
+                    else
+                      " (Ongoing)"
+                    end
         
-        if last_used
-          days_since = ((now - last_used) / 1.day).floor
-          puts "      Last used: #{days_since} days ago"
+        puts "#{status_icon} #{pillar.name}#{current_indicator}"
+        puts "   Weight: #{pillar.weight}% | Priority: #{pillar.priority}/5#{date_range}"
+        
+        if gap_data
+          puts "   Target: #{gap_data[:posts_needed]} posts | Available: #{gap_data[:photos_available]} photos | Gap: #{gap_data[:gap]}"
+        end
+        
+        # Show clusters assigned to this pillar
+        pillar_clusters = pillar.clusters.order(:name)
+        
+        if pillar_clusters.any?
+          puts "   Clusters (#{pillar_clusters.count}):"
+          
+          pillar_clusters.each do |cluster|
+            total_photos = cluster.photos.where(persona: persona).count
+            unposted = total_photos - cluster.photos.where(id: posted_photo_ids).count
+            
+            cluster_status = if unposted == 0
+                              "🚫"
+                            elsif unposted < 3
+                              "⚠️ "
+                            else
+                              "✅"
+                            end
+            
+            # Check if shared with other pillars
+            other_pillars = cluster.pillars.where.not(id: pillar.id)
+            shared_indicator = other_pillars.any? ? " [SHARED: #{other_pillars.pluck(:name).join(', ')}]" : ""
+            primary_indicator = pillar.pillar_cluster_assignments.find_by(cluster: cluster)&.primary? ? " ★" : ""
+            
+            puts "      #{cluster_status} #{cluster.name}#{primary_indicator}#{shared_indicator}"
+            puts "         #{total_photos} photos (#{unposted} unposted)"
+          end
         else
-          puts "      Last used: Never"
+          puts "   Clusters: None assigned"
+          puts "      → rails pillars:assign_cluster PILLAR_ID=#{pillar.id} CLUSTER_ID=..."
         end
         
         puts ""
       end
       
-      # Summary stats
-      total_photos = clusters.sum { |c| c.photos.where(persona: persona).count }
-      total_unposted = clusters.sum do |c|
-        c.photos.where(persona: persona)
-         .where.not(id: posted_photo_ids)
-         .count
+      # Summary
+      total_weight = pillars.sum(:weight)
+      puts "Total Active Weight: #{total_weight}%"
+      
+      if total_weight < 100
+        puts "⚠️  Unused capacity: #{100 - total_weight}% available for new pillars"
+      elsif total_weight > 100
+        puts "❌ WARNING: Total weight exceeds 100%!"
       end
       
-      puts "Total: #{total_photos} photos across #{clusters.count} themes"
-      puts "Unposted: #{total_unposted} photos available"
+    elsif persona.clusters.any?
+      # Fallback: Show clusters without pillar organization
+      puts "⚠️  No active content pillars defined\n"
+      puts "   Clusters exist but not organized into strategic pillars"
+      puts "   Create pillar: rails pillars:create PERSONA=#{persona.name} NAME='...' WEIGHT=30\n\n"
       
-      if total_unposted < 10
-        puts "⚠️  WARNING: Running low on unposted content!"
+      clusters = persona.clusters.order(:name)
+      puts "Unorganized Clusters (#{clusters.count}):\n\n"
+      
+      clusters.each do |cluster|
+        total_photos = cluster.photos.where(persona: persona).count
+        unposted = total_photos - cluster.photos.where(id: posted_photo_ids).count
+        
+        status = if unposted == 0
+                  "🚫"
+                elsif unposted < 3
+                  "⚠️ "
+                else
+                  "✅"
+                end
+        
+        puts "  #{status} #{cluster.name}: #{total_photos} photos (#{unposted} unposted)"
       end
+      
     else
-      puts "⚠️  No clusters found for #{persona.name}"
-      puts "   Run: rails clustering:generate to create clusters"
+      puts "⚠️  No content pillars or clusters found for #{persona.name}"
+      puts "   1. Create pillar: rails pillars:create PERSONA=#{persona.name} NAME='...' WEIGHT=30"
+      puts "   2. Create clusters: rails clustering:generate PERSONA=#{persona.name}"
+      puts "   3. Assign clusters: rails pillars:assign_cluster PILLAR_ID=... CLUSTER_ID=..."
     end
 
     puts "\n"
@@ -225,17 +282,25 @@ namespace :content_strategy do
 
     actions = []
     
-    # Action 1: Check if we need immediate posts
+    # Priority 1: Content gaps from pillar analysis
+    if pillars.any?
+      gaps = ContentPillars::GapAnalyzer.new(persona: persona).analyze(days_ahead: 30)
+      critical_gaps = gaps.select { |g| g[:priority] == :high || g[:status] == :critical }
+      
+      critical_gaps.first(2).each do |gap|
+        actions << {
+          priority: "🔴 HIGH",
+          action: "Create content for #{gap[:pillar].name}",
+          command: "Need #{gap[:gap]} photos for this pillar",
+          why: "#{gap[:status].to_s.upcase}: Target #{gap[:posts_needed]} posts, have #{gap[:photos_available]} photos"
+        }
+      end
+    end
+    
+    # Priority 2: Check if we need immediate posts
     immediate_posts = scheduled_posts.select do |p|
       p.optimal_time_calculated && p.optimal_time_calculated < now + 24.hours
     end
-    
-    posts_this_week = Scheduling::Post
-      .where(persona: persona)
-      .where('created_at >= ?', now.beginning_of_week)
-      .count
-    
-    target_per_week = 3 # From Thanksgiving plan: 2-3/week
     
     if scheduled_posts.count == 0
       actions << {
@@ -253,61 +318,41 @@ namespace :content_strategy do
       }
     end
     
-    # Action 2: Check content plan alignment
-    # For Thanksgiving: We should have 9 posts scheduled through Dec 3
-    if persona.name.downcase == 'sarah' && now < Time.parse('2024-12-03').in_time_zone('America/New_York')
-      thanksgiving_start = Time.parse('2024-11-11').in_time_zone('America/New_York')
-      thanksgiving_end = Time.parse('2024-12-03').in_time_zone('America/New_York')
+    # Priority 3: Pillar without clusters
+    pillars_without_clusters = pillars.select { |p| p.clusters.count == 0 }
+    if pillars_without_clusters.any?
+      pillar = pillars_without_clusters.first
+      actions << {
+        priority: "🟡 MEDIUM",
+        action: "Assign clusters to #{pillar.name} pillar",
+        command: "rails pillars:assign_cluster PILLAR_ID=#{pillar.id} CLUSTER_ID=...",
+        why: "Pillar has no clusters assigned yet"
+      }
+    end
+    
+    # Priority 4: Clusters without pillars (if pillars exist)
+    if pillars.any?
+      orphaned_clusters = persona.clusters.where.not(
+        id: PillarClusterAssignment.select(:cluster_id)
+      )
       
-      thanksgiving_posts = Scheduling::Post
-        .where(persona: persona)
-        .where('optimal_time_calculated >= ? AND optimal_time_calculated <= ?', thanksgiving_start, thanksgiving_end)
-        .count
-      
-      if thanksgiving_posts < 9
+      if orphaned_clusters.any?
         actions << {
-          priority: "🟡 MEDIUM",
-          action: "Complete Thanksgiving content plan",
-          command: "Review docs/content-plans/sarah-thanksgiving-2024.md",
-          why: "#{thanksgiving_posts}/9 Thanksgiving posts scheduled (need #{9 - thanksgiving_posts} more)"
+          priority: "🟢 LOW",
+          action: "Organize #{orphaned_clusters.count} unassigned cluster(s)",
+          command: "rails pillars:assign_cluster ...",
+          why: "Clusters exist but not assigned to any pillar"
         }
       end
     end
     
-    # Action 3: Check cluster health
-    low_clusters = clusters.select do |c|
-      unposted = c.photos.where(persona: persona)
-                  .where.not(id: posted_photo_ids)
-                  .count
-      unposted > 0 && unposted < 3
-    end
-    
-    if low_clusters.any?
-      actions << {
-        priority: "🟢 LOW",
-        action: "Review low-content clusters",
-        command: "Check clusters: #{low_clusters.map(&:name).join(', ')}",
-        why: "#{low_clusters.count} cluster(s) running low on content"
-      }
-    end
-    
-    # Action 4: Post frequency check
-    if posts_this_week < target_per_week && now.wday >= 3 # Wednesday or later
+    # Priority 5: No pillars defined
+    if pillars.empty? && persona.clusters.any?
       actions << {
         priority: "🟡 MEDIUM",
-        action: "Maintain posting frequency",
-        command: "rails content_strategy:schedule_next PERSONA=#{persona.name}",
-        why: "Only #{posts_this_week}/#{target_per_week} posts this week"
-      }
-    end
-    
-    # Action 5: Caption config check
-    unless persona.caption_config
-      actions << {
-        priority: "🟢 LOW",
-        action: "Set up AI caption generation",
-        command: "Configure persona.caption_config for automated captions",
-        why: "Currently using fallback captions"
+        action: "Create content pillars for strategic organization",
+        command: "rails pillars:create PERSONA=#{persona.name} NAME='...' WEIGHT=30",
+        why: "Clusters exist but no strategic pillars defined"
       }
     end
     
