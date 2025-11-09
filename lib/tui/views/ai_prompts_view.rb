@@ -6,7 +6,7 @@ module TUI
   module Views
     class AIPromptsView < BaseView
       def display
-        show_header("AI Content Suggestions - #{@persona.name}")
+        puts header("AI Content Suggestions - #{@persona.name}")
         
         loop do
           puts

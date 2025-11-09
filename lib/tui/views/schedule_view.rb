@@ -45,7 +45,7 @@ module TUI
 
         puts "\n#{pastel.bold('Pillar:')} #{result[:pillar]&.name || 'None'}"
         puts "#{pastel.bold('Cluster:')} #{result[:cluster]&.name || 'None'}"
-        puts "#{pastel.bold('Photo:')} #{result[:photo].filename}"
+        puts "#{pastel.bold('Photo:')} #{File.basename(result[:photo].path)}"
         puts "#{pastel.bold('Scheduled Time:')} #{result[:scheduled_at].strftime('%A, %B %-d at %-I:%M %p')}"
 
         puts "\n#{pastel.bold('Caption:')}"
