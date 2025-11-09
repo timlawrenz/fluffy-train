@@ -2,7 +2,7 @@
 
 class ContentPillar < ApplicationRecord
   belongs_to :persona
-  has_many :pillar_cluster_assignments, dependent: :destroy
+  has_many :pillar_cluster_assignments, foreign_key: :pillar_id, dependent: :destroy
   has_many :clusters, through: :pillar_cluster_assignments, class_name: 'Clustering::Cluster'
 
   # Validations
