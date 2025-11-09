@@ -7,6 +7,7 @@ require_relative '../lib/tui/views/base_view'
 require_relative '../lib/tui/views/dashboard_view'
 require_relative '../lib/tui/views/schedule_view'
 require_relative '../lib/tui/views/cleanup_view'
+require_relative '../lib/tui/views/pillar_view'
 
 # Parse arguments
 persona_name = ARGV[0] || 'sarah'

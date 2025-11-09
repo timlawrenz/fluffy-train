@@ -51,6 +51,14 @@ module TUI
       def wait_for_key
         prompt.keypress("\n#{pastel.dim('Press any key to continue...')}")
       end
+
+      def clear_screen
+        print "\e[2J\e[H"
+      end
+
+      def print_header(title)
+        puts header(title)
+      end
     end
   end
 end

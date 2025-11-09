@@ -43,8 +43,7 @@ module TUI
       when :dashboard
         Views::DashboardView.new(persona: persona).display
       when :pillars
-        puts pastel.yellow("\n🚧 Pillars & Clusters view coming soon...")
-        prompt.keypress("\nPress any key to continue", timeout: 3)
+        Views::PillarView.new(persona: persona).display
       when :photos
         puts pastel.yellow("\n🚧 Photo browser coming soon...")
         prompt.keypress("\nPress any key to continue", timeout: 3)
