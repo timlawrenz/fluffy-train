@@ -30,6 +30,7 @@ module TUI
       prompt.select("\n#{header}\n\nWhat would you like to do?", cycle: true, per_page: 10) do |menu|
         menu.choice "📊 Dashboard", :dashboard
         menu.choice "🎯 Pillars & Clusters", :pillars
+        menu.choice "🤖 AI Content Suggestions", :ai_prompts
         menu.choice "📷 Browse Photos", :photos
         menu.choice "📅 Schedule Post", :schedule
         menu.choice "🧹 Cleanup Overdue", :cleanup
@@ -43,6 +44,8 @@ module TUI
         Views::DashboardView.new(persona: persona).display
       when :pillars
         Views::PillarView.new(persona: persona).display
+      when :ai_prompts
+        Views::AIPromptsView.new(persona: persona).display
       when :photos
         puts pastel.yellow("\n🚧 Photo browser coming soon...")
         prompt.keypress("\nPress any key to continue", timeout: 3)

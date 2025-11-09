@@ -275,7 +275,7 @@ module TUI
         photo_choices = available.map do |photo|
           status = photo.cluster ? "(in #{photo.cluster.name})" : "(unassigned)"
           {
-            name: "#{File.basename(photo.path)} #{pastel.dim(status)}",
+            name: "#{photo.path} #{pastel.dim(status)}",
             value: photo.id
           }
         end

@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative '../config/environment'
+require_relative '../lib/ai/content_prompt_generator'
+
+persona = Persona.find_by(name: 'sarah')
+unless persona
+  puts "Sarah persona not found"
+  exit 1
+end
+
+pillar = persona.content_pillars.find { |p| p.name.downcase.include?('thanksgiving') }
+unless pillar
+  puts "No Thanksgiving pillar found. Available pillars:"
+  persona.content_pillars.each { |p| puts "  - #{p.name}" }
+  exit 1
+end
+
+puts "Generating AI prompts for: #{pillar.name}"
+puts "=" * 80
+puts
+
+generator = AI::ContentPromptGenerator.new(persona)
+prompts = generator.generate_creation_prompts(pillar, count: 2)
+
+if prompts.empty?
+  puts "No prompts generated. Check Ollama connectivity."
+  exit 1
+end
+
+prompts.each_with_index do |prompt, idx|
+  puts "PROMPT #{idx + 1}:"
+  puts "-" * 80
+  puts prompt[:full_prompt]
+  puts
+  puts "  Scene: #{prompt[:scene]}" if prompt[:scene]
+  puts "  Outfit: #{prompt[:outfit]}" if prompt[:outfit]
+  puts "  Mood: #{prompt[:mood]}" if prompt[:mood]
+  puts
+  puts "=" * 80
+  puts
+end

@@ -76,16 +76,45 @@ module TUI
 
           puts "\n  #{status_icon} #{pastel.bold(pillar.name)} " +
                pastel.dim("(#{pillar.weight}% weight, priority: #{pillar.priority})")
-          puts "      #{clusters.count} clusters, #{total_photos} photos total, " +
-               pastel.cyan("#{unposted} unposted")
-
+          
           if pillar.start_date && pillar.end_date
             puts "      #{pastel.dim("Active: #{pillar.start_date.strftime('%m/%d')} - #{pillar.end_date.strftime('%m/%d')}")}"
           end
 
-          if unposted < 5
-            puts "      #{warning("LOW INVENTORY - need more photos!")}"
+          # Show clusters as tree
+          if clusters.any?
+            clusters.each_with_index do |cluster, idx|
+              is_last = idx == clusters.count - 1
+              tree_char = is_last ? '└─' : '├─'
+              
+              cluster_photos = cluster.photos.count
+              cluster_unposted = cluster.photos.unposted.count
+              
+              cluster_status = if cluster_unposted == 0
+                                pastel.red('○')
+                              elsif cluster_unposted < 3
+                                pastel.yellow('◐')
+                              else
+                                pastel.green('●')
+                              end
+              
+              puts "      #{pastel.dim(tree_char)} #{cluster_status} #{cluster.name} " +
+                   pastel.dim("(#{cluster_photos} photos, ") +
+                   pastel.cyan("#{cluster_unposted} unposted") +
+                   pastel.dim(")")
+            end
+          else
+            puts "      #{pastel.dim('└─')} #{pastel.yellow('No clusters linked')}"
           end
+
+          summary_line = "      #{pastel.bold('Total:')} #{clusters.count} clusters, #{total_photos} photos, " +
+                        pastel.cyan("#{unposted} unposted")
+          
+          if unposted < 5
+            summary_line += " #{warning("← LOW!")}"
+          end
+          
+          puts summary_line
         end
       end
 
