@@ -52,6 +52,7 @@ module ContentStrategy
         persona: context.persona,
         post: post,
         cluster: cluster,
+        pillar: context.selected_pillar,
         strategy_name: name,
         decision_context: build_decision_context(photo: photo, cluster: cluster)
       )
@@ -62,6 +63,8 @@ module ContentStrategy
         photo_id: photo.id,
         cluster_id: cluster&.id,
         cluster_name: cluster&.name,
+        pillar_id: context.selected_pillar&.id,
+        pillar_name: context.selected_pillar&.name,
         strategy: name,
         timestamp: context.current_time.iso8601
       }

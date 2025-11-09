@@ -1,11 +1,12 @@
 module ContentStrategy
   class Context
-    attr_reader :persona, :current_time, :config
+    attr_reader :persona, :current_time, :config, :selected_pillar
 
-    def initialize(persona:, current_time: Time.current, config: nil)
+    def initialize(persona:, current_time: Time.current, config: nil, pillar: nil)
       @persona = persona
       @current_time = current_time
       @config = config || ConfigLoader.load
+      @selected_pillar = pillar
     end
 
     def posting_history
@@ -20,7 +21,14 @@ module ContentStrategy
     end
 
     def available_clusters
-      @available_clusters ||= persona.clusters
+      # If pillar is specified, only return clusters from that pillar
+      base_scope = if selected_pillar
+                     selected_pillar.clusters
+                   else
+                     persona.clusters
+                   end
+
+      @available_clusters ||= base_scope
         .joins(:photos)
         .where.not(photos: { id: Scheduling::Post.where.not(photo_id: nil).select(:photo_id) })
         .distinct
@@ -37,6 +45,17 @@ module ContentStrategy
 
     def state_config
       state.strategy_config.presence || {}
+    end
+
+    # Pillar-aware methods
+    def use_pillar_rotation?
+      persona.content_pillars.current.any?
+    end
+
+    def select_pillar
+      return nil unless use_pillar_rotation?
+      
+      @selected_pillar ||= ContentPillars::RotationService.new(persona: persona).select_next_pillar
     end
   end
 end

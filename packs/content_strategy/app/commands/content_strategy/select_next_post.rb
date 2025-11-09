@@ -22,6 +22,7 @@ module ContentStrategy
           success: true,
           photo: result[:photo],
           cluster: result[:cluster],
+          pillar: context.selected_pillar,
           optimal_time: result[:optimal_time],
           hashtags: result[:hashtags],
           format: result[:format],
@@ -39,7 +40,9 @@ module ContentStrategy
     end
 
     def build_context
-      Context.new(persona: persona)
+      # Select pillar first if persona has active pillars
+      pillar = select_pillar_if_applicable
+      Context.new(persona: persona, pillar: pillar)
     end
 
     def build_strategy(context)
@@ -50,6 +53,12 @@ module ContentStrategy
     def default_strategy_name
       state = StrategyState.find_by(persona: persona)
       state&.active_strategy || "theme_of_week_strategy"
+    end
+
+    def select_pillar_if_applicable
+      return nil unless persona.content_pillars.current.any?
+      
+      ContentPillars::RotationService.new(persona: persona).select_next_pillar
     end
   end
 end
