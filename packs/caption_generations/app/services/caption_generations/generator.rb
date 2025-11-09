@@ -95,7 +95,7 @@ module CaptionGenerations
     def build_metadata(processed, variations)
       {
         method: 'ai_generated',
-        model: 'llava:latest',
+        model: 'gemma3:27b',
         generated_at: Time.current,
         quality_score: processed[:quality_score],
         variations: variations.count,

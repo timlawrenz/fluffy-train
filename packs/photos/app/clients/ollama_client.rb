@@ -102,7 +102,7 @@ class OllamaClient
     encoded_image = encode_image
     response = connection.post('/api/generate') do |req|
       req.body = {
-        model: 'llava:latest',
+        model: 'gemma3:27b',
         prompt: caption_generation_prompt,
         images: [encoded_image],
         stream: false
@@ -120,7 +120,7 @@ class OllamaClient
     
     response = connection.post('/api/generate') do |req|
       req.body = {
-        model: 'llava:latest',
+        model: 'gemma3:27b',
         prompt: combined_prompt,
         images: [encoded_image],
         stream: false
