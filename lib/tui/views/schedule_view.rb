@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'io/console'
+
 module TUI
   module Views
     class ScheduleView < BaseView
@@ -75,7 +77,8 @@ module TUI
         puts "\n" + pastel.dim("─" * 80)
         puts pastel.dim("Actions: [s] schedule  [r] regenerate caption  [e] edit caption  [c] cancel")
 
-        choice = prompt.keypress("\nWhat would you like to do?", keys: [:keypress])
+        print "\n#{pastel.cyan('What would you like to do?')} "
+        choice = $stdin.getch
 
         case choice
         when 's'
@@ -113,7 +116,8 @@ module TUI
       end
 
       def regenerate_and_preview(result)
-        puts "\n#{pastel.yellow('Regenerating caption with gemma3:27b...')}"
+        provider = ENV['GEMINI_API_KEY'].present? ? 'Gemini 2.0 Flash' : 'Ollama gemma3:27b'
+        puts "\n#{pastel.yellow("Regenerating caption with #{provider}...")}"
         
         begin
           caption_result = CaptionGenerations::Generator.generate(

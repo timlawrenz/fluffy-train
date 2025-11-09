@@ -52,8 +52,41 @@ module CaptionGenerations
 
     def generate_variations(prompt, count)
       count.times.map do
+        generate_caption(prompt)
+      end
+    end
+
+    def generate_caption(prompt)
+      # Try Gemini first (preferred), fall back to Ollama
+      if gemini_available?
+        gemini_generate_caption(prompt)
+      else
         ollama_generate_caption(prompt)
       end
+    rescue StandardError => e
+      Rails.logger.error("Caption generation failed: #{e.message}")
+      TemplateGenerator.generate(
+        cluster: @cluster,
+        config: @persona.caption_config
+      )
+    end
+
+    def gemini_available?
+      ENV['GEMINI_API_KEY'].present?
+    end
+
+    def gemini_generate_caption(prompt)
+      require_relative '../../../../../lib/ai/gemini_client'
+      
+      client = AI::GeminiClient.new
+      caption = client.generate(
+        prompt[:user],
+        system: prompt[:system],
+        temperature: 0.8,
+        max_tokens: 500
+      )
+      
+      caption.strip
     end
 
     def ollama_generate_caption(prompt)
@@ -62,12 +95,6 @@ module CaptionGenerations
         file_path: @photo.path,
         system_prompt: prompt[:system],
         user_prompt: prompt[:user]
-      )
-    rescue StandardError => e
-      Rails.logger.error("Caption generation failed: #{e.message}")
-      TemplateGenerator.generate(
-        cluster: @cluster,
-        config: @persona.caption_config
       )
     end
 
@@ -95,7 +122,8 @@ module CaptionGenerations
     def build_metadata(processed, variations)
       {
         method: 'ai_generated',
-        model: 'gemma3:27b',
+        model: gemini_available? ? 'gemini-2.0-flash-exp' : 'gemma3:27b',
+        generated_by: gemini_available? ? 'gemini' : 'ollama',
         generated_at: Time.current,
         quality_score: processed[:quality_score],
         variations: variations.count,
