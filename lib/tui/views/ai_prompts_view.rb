@@ -47,8 +47,8 @@ module TUI
         end
         
         pillar_choices = pillars.map do |p|
-          clusters = Clustering::Cluster.joins(:cluster_pillars).where(cluster_pillars: { content_pillar_id: p.id }).count
-          photos = Photo.joins(cluster: :cluster_pillars).where(cluster_pillars: { content_pillar_id: p.id }).count
+          clusters = Clustering::Cluster.joins(:pillar_cluster_assignments).where(pillar_cluster_assignments: { pillar_id: p.id }).count
+          photos = Photo.joins(:cluster).joins("INNER JOIN pillar_cluster_assignments ON pillar_cluster_assignments.cluster_id = clusters.id").where(pillar_cluster_assignments: { pillar_id: p.id }).count
           ["#{p.name} (#{clusters} clusters, #{photos} photos)", p.id]
         end.to_h
         

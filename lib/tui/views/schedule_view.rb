@@ -46,7 +46,10 @@ module TUI
         puts "\n#{pastel.bold('Pillar:')} #{result[:pillar]&.name || 'None'}"
         puts "#{pastel.bold('Cluster:')} #{result[:cluster]&.name || 'None'}"
         puts "#{pastel.bold('Photo:')} #{File.basename(result[:photo].path)}"
-        puts "#{pastel.bold('Scheduled Time:')} #{result[:scheduled_at].strftime('%A, %B %-d at %-I:%M %p')}"
+        
+        if result[:optimal_time]
+          puts "#{pastel.bold('Scheduled Time:')} #{result[:optimal_time].strftime('%A, %B %-d at %-I:%M %p')}"
+        end
 
         puts "\n#{pastel.bold('Caption:')}"
         puts pastel.dim("─" * 80)
@@ -77,16 +80,19 @@ module TUI
       end
 
       def schedule_post(result)
+        scheduled_time = result[:optimal_time] || Time.now + 1.hour
+        
         post = Scheduling::Post.create!(
           persona: persona,
           photo: result[:photo],
           caption: result[:caption],
           hashtags: result[:hashtags],
-          scheduled_at: result[:scheduled_at],
-          status: 'scheduled'
+          scheduled_at: scheduled_time,
+          status: 'scheduled',
+          cluster: result[:cluster]
         )
 
-        puts "\n#{success("Post scheduled for #{result[:scheduled_at].strftime('%m/%d at %-I:%M %p')}")}"
+        puts "\n#{success("Post scheduled for #{scheduled_time.strftime('%m/%d at %-I:%M %p')}")}"
         wait_for_key
       rescue StandardError => e
         puts "\n#{error("Failed to schedule: #{e.message}")}"
