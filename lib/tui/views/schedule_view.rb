@@ -77,21 +77,29 @@ module TUI
         puts "\n" + pastel.dim("─" * 80)
         puts pastel.dim("Actions: [s] schedule  [r] regenerate caption  [e] edit caption  [c] cancel")
 
-        print "\n#{pastel.cyan('What would you like to do?')} "
-        choice = $stdin.getch
+        loop do
+          print "\n#{pastel.cyan('What would you like to do?')} "
+          $stdout.flush
+          choice = $stdin.getch.downcase
+          puts # newline after input
 
-        case choice
-        when 's'
-          schedule_post(result)
-        when 'r'
-          regenerate_and_preview(result)
-        when 'e'
-          edit_and_schedule(result)
-        when 'c', 'q', "\e"
-          puts "\n#{warning('Cancelled')}"
-          wait_for_key
-        else
-          confirm_schedule(result) # Try again
+          case choice
+          when 's'
+            schedule_post(result)
+            break
+          when 'r'
+            regenerate_and_preview(result)
+            break
+          when 'e'
+            edit_and_schedule(result)
+            break
+          when 'c', 'q', "\e"
+            puts warning('Cancelled')
+            wait_for_key
+            break
+          else
+            puts warning("Invalid choice. Please press s, r, e, or c")
+          end
         end
       end
 
@@ -116,7 +124,7 @@ module TUI
       end
 
       def regenerate_and_preview(result)
-        provider = ENV['GEMINI_API_KEY'].present? ? 'Gemini 2.0 Flash' : 'Ollama gemma3:27b'
+        provider = ENV['GEMINI_API_KEY'].present? ? 'Gemini 2.5 Pro' : 'Ollama gemma3:27b'
         puts "\n#{pastel.yellow("Regenerating caption with #{provider}...")}"
         
         begin

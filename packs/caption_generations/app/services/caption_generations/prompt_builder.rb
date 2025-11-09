@@ -31,9 +31,13 @@ module CaptionGenerations
         #{topics_text}
         #{avoid_topics_text}
         
-        IMPORTANT: Keep the caption concise and engaging. Instagram captions should grab attention quickly.
+        IMPORTANT: Write engaging, authentic captions that tell a story or share a moment. 
+        Good Instagram captions draw readers in and create connection.
         #{length_guidance_text}
         #{emoji_guidance_text}
+        
+        Write 3-5 sentences that feel natural and conversational. Share a thought, feeling, or observation.
+        Create captions that are substantial enough to engage readers while maintaining authenticity.
         
         #{avoid_phrases_text}
       PROMPT
@@ -41,13 +45,15 @@ module CaptionGenerations
 
     def build_user_prompt
       <<~PROMPT.strip
-        Write an Instagram caption for this image.
+        Write an Instagram caption for this image. Look at the image carefully and incorporate what you see.
         
         #{context_text}
         
         #{example_captions_text}
         
-        Generate a single caption that matches the style and tone described. Do not include hashtags.
+        Generate a single caption that matches the style and tone described. 
+        Write 3-5 complete sentences that tell a story or share a genuine moment.
+        Do not include hashtags - they will be added separately.
       PROMPT
     end
 
@@ -79,13 +85,13 @@ module CaptionGenerations
     def length_guidance_text
       case @config.style[:avg_length]
       when 'short'
-        '- Target length: 60-100 characters (very brief)'
+        '- Target length: 200-350 characters (2-3 engaging sentences)'
       when 'medium'
-        '- Target length: 100-150 characters (concise)'
+        '- Target length: 350-550 characters (3-4 sentences with detail)'
       when 'long'
-        '- Target length: 150-200 characters (detailed)'
+        '- Target length: 550-800 characters (4-6 sentences, rich narrative)'
       else
-        '- Target length: 100-150 characters'
+        '- Target length: 350-550 characters (3-4 sentences with detail)'
       end
     end
 

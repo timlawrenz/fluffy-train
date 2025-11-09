@@ -2,10 +2,11 @@
 
 require 'faraday'
 require 'json'
+require 'base64'
 
 module AI
   class GeminiClient
-    DEFAULT_MODEL = 'gemini-2.0-flash-exp'
+    DEFAULT_MODEL = 'gemini-2.5-pro-002'
     API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
     
     def initialize(api_key: nil, model: DEFAULT_MODEL)
@@ -20,7 +21,7 @@ module AI
       end
     end
     
-    def generate(prompt, system: nil, temperature: 0.7, max_tokens: 2000)
+    def generate(prompt, system: nil, temperature: 0.7, max_tokens: 2000, image_path: nil)
       contents = []
       
       if system
@@ -34,9 +35,20 @@ module AI
         }
       end
       
+      # Build user message parts
+      user_parts = []
+      
+      # Add image if provided
+      if image_path && File.exist?(image_path)
+        user_parts << build_image_part(image_path)
+      end
+      
+      # Add text prompt
+      user_parts << { text: prompt }
+      
       contents << {
         role: 'user',
-        parts: [{ text: prompt }]
+        parts: user_parts
       }
       
       payload = {
@@ -62,6 +74,31 @@ module AI
       !@api_key.nil?
     rescue
       false
+    end
+    
+    private
+    
+    def build_image_part(image_path)
+      # Read and encode image
+      image_data = File.binread(image_path)
+      encoded_image = Base64.strict_encode64(image_data)
+      
+      # Determine MIME type
+      mime_type = case File.extname(image_path).downcase
+                  when '.jpg', '.jpeg' then 'image/jpeg'
+                  when '.png' then 'image/png'
+                  when '.webp' then 'image/webp'
+                  when '.heic' then 'image/heic'
+                  when '.heif' then 'image/heif'
+                  else 'image/jpeg'
+                  end
+      
+      {
+        inline_data: {
+          mime_type: mime_type,
+          data: encoded_image
+        }
+      }
     end
   end
 end

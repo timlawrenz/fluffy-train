@@ -83,7 +83,8 @@ module CaptionGenerations
         prompt[:user],
         system: prompt[:system],
         temperature: 0.8,
-        max_tokens: 500
+        max_tokens: 800,
+        image_path: @photo.path
       )
       
       caption.strip
@@ -112,17 +113,17 @@ module CaptionGenerations
 
     def length_target(length_type)
       case length_type.to_s
-      when 'short' then 80
-      when 'medium' then 125
-      when 'long' then 180
-      else 125
+      when 'short' then 275
+      when 'medium' then 450
+      when 'long' then 675
+      else 450
       end
     end
 
     def build_metadata(processed, variations)
       {
         method: 'ai_generated',
-        model: gemini_available? ? 'gemini-2.0-flash-exp' : 'gemma3:27b',
+        model: gemini_available? ? 'gemini-2.5-pro-002' : 'gemma3:27b',
         generated_by: gemini_available? ? 'gemini' : 'ollama',
         generated_at: Time.current,
         quality_score: processed[:quality_score],
