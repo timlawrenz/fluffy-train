@@ -29,16 +29,21 @@ module ContentStrategy
       state_cluster_id = state.get_state(:cluster_id)
 
       if state_week == week_number && state_cluster_id
-        Clustering::Cluster.find_by(id: state_cluster_id)
-      else
-        new_cluster = select_new_cluster
-        if new_cluster
-          state.set_state(:week_number, week_number)
-          state.set_state(:cluster_id, new_cluster.id)
-          state.update!(started_at: context.current_time)
+        cached_cluster = Clustering::Cluster.find_by(id: state_cluster_id)
+        # Verify cached cluster still has available photos
+        if cached_cluster && cluster_has_photos?(cached_cluster)
+          return cached_cluster
         end
-        new_cluster
+        # Cached cluster is exhausted, select a new one
       end
+      
+      new_cluster = select_new_cluster
+      if new_cluster
+        state.set_state(:week_number, week_number)
+        state.set_state(:cluster_id, new_cluster.id)
+        state.update!(started_at: context.current_time)
+      end
+      new_cluster
     end
 
     def select_new_cluster
@@ -64,6 +69,13 @@ module ContentStrategy
         .where(persona: context.persona)
         .where.not(photo_id: nil)
         .pluck(:photo_id)
+    end
+
+    def cluster_has_photos?(cluster)
+      Photo
+        .where(cluster: cluster)
+        .where.not(id: posted_photo_ids)
+        .exists?
     end
   end
 end

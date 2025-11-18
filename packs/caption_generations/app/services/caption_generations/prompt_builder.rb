@@ -2,12 +2,13 @@
 
 module CaptionGenerations
   class PromptBuilder
-    def self.build(config:, context:, avoid_phrases: [])
-      new(config: config, context: context, avoid_phrases: avoid_phrases).build
+    def self.build(persona:, context:, avoid_phrases: [])
+      new(persona: persona, context: context, avoid_phrases: avoid_phrases).build
     end
 
-    def initialize(config:, context:, avoid_phrases: [])
-      @config = config
+    def initialize(persona:, context:, avoid_phrases: [])
+      @persona = persona
+      @config = persona.caption_config
       @context = context
       @avoid_phrases = avoid_phrases
     end
@@ -23,119 +24,117 @@ module CaptionGenerations
 
     def build_system_prompt
       <<~PROMPT.strip
-        You are a social media caption writer for Instagram. Your task is to write captions that:
-        
-        - Match the #{@config.tone} tone
-        #{voice_attributes_text}
-        #{style_instructions_text}
-        #{topics_text}
-        #{avoid_topics_text}
+        You are a social media caption writer for Instagram. 
         
         IMPORTANT: Write engaging, authentic captions that tell a rich story or share a meaningful moment. 
         Good Instagram captions draw readers in, create connection, and provide genuine value.
-        #{length_guidance_text}
-        #{emoji_guidance_text}
         
         Write 4-7 sentences that feel natural and conversational. Share thoughts, feelings, observations, or context.
         Create captions that are substantial, engaging, and authentic - don't be afraid to add personality and detail.
         Paint a picture with words that complements what's in the photo.
         
-        #{avoid_phrases_text}
+        You will receive detailed JSON configuration about the persona's voice, style preferences, and the photo context.
+        Use this information to craft the perfect caption.
       PROMPT
     end
 
     def build_user_prompt
       <<~PROMPT.strip
-        Write an Instagram caption for this image. Look at the image carefully and incorporate specific details you see - 
-        describe the setting, mood, colors, lighting, or atmosphere. Make it vivid and engaging.
+        Please generate a caption for Instagram for the attached photo.
         
-        #{context_text}
+        PERSONA CAPTION STRATEGY:
+        ```json
+        #{persona_caption_config_json}
+        ```
         
-        #{example_captions_text}
+        PERSONA HASHTAG STRATEGY:
+        ```json
+        #{persona_hashtag_strategy_json}
+        ```
         
-        Generate a single caption that matches the style and tone described. 
+        PHOTO ANALYSIS:
+        ```json
+        #{photo_context_json}
+        ```
+        
+        #{cluster_context_json}
+        
+        #{avoid_phrases_json}
+        
+        Generate a single caption that matches the persona's voice and style from the JSON configuration above.
+        Look at the photo carefully and incorporate specific details you see in the detected objects.
         Write 4-7 complete sentences that tell a rich story or share a genuine, detailed moment.
         Be specific about what you observe in the image to create authentic connection.
         Do not include hashtags - they will be added separately.
       PROMPT
     end
 
-    def voice_attributes_text
-      return '' if @config.voice_attributes.empty?
-      "- Voice qualities: #{@config.voice_attributes.join(', ')}"
+    private
+
+    def persona_caption_config_json
+      # Use the raw caption_config JSON directly from the database
+      JSON.pretty_generate(@config.to_hash)
     end
 
-    def style_instructions_text
-      return '' if @config.style.empty?
-      instructions = []
-      instructions << "use emoji" if @config.style[:use_emoji]
-      instructions << "be conversational" if @config.tone == 'casual'
-      instructions << "be professional" if @config.tone == 'professional'
-      return '' if instructions.empty?
-      "- Style: #{instructions.join(', ')}"
+    def persona_hashtag_strategy_json
+      # Use the raw hashtag_strategy JSON directly from the database
+      return JSON.pretty_generate({note: "No hashtag strategy configured"}) unless @persona.hashtag_strategy
+      JSON.pretty_generate(@persona.hashtag_strategy.to_hash)
     end
 
-    def topics_text
-      return '' if @config.topics.empty?
-      "- Preferred topics: #{@config.topics.join(', ')}"
-    end
-
-    def avoid_topics_text
-      return '' if @config.avoid_topics.empty?
-      "- Avoid these topics: #{@config.avoid_topics.join(', ')}"
-    end
-
-    def length_guidance_text
-      case @config.style[:avg_length]
-      when 'short'
-        '- Target length: 300-450 characters (3-4 engaging sentences)'
-      when 'medium'
-        '- Target length: 450-700 characters (4-6 sentences with detail and personality)'
-      when 'long'
-        '- Target length: 700-1000 characters (6-8 sentences, rich narrative with vivid details)'
-      else
-        '- Target length: 450-700 characters (4-6 sentences with detail and personality)'
-      end
-    end
-
-    def emoji_guidance_text
-      return '- Do not use emoji' unless @config.style[:use_emoji]
+    def photo_context_json
+      context_data = {
+        image_description: @context[:image_description],
+        aesthetic_score: @context.dig(:photo_analysis, :aesthetic_score),
+        detected_objects: @context.dig(:photo_analysis, :detected_objects)
+      }.compact
       
-      case @config.style[:emoji_density]
-      when 'none'
-        '- Do not use emoji'
-      when 'low'
-        '- Use 0-1 emoji sparingly'
-      when 'moderate'
-        '- Use 1-2 emoji naturally'
-      when 'high'
-        '- Use 2-3 emoji for emphasis'
-      else
-        '- Use 1-2 emoji naturally'
-      end
+      JSON.pretty_generate(context_data)
     end
 
-    def avoid_phrases_text
+    def cluster_context_json
+      return '' unless @context[:cluster_data]
+      
+      <<~CONTEXT.strip
+        CLUSTER/THEME CONTEXT:
+        ```json
+        #{JSON.pretty_generate(@context[:cluster_data])}
+        ```
+      CONTEXT
+    end
+
+    def avoid_phrases_json
       return '' if @avoid_phrases.empty?
-      phrases_list = @avoid_phrases.take(10).map { |p| "\"#{p}\"" }.join(', ')
-      "- AVOID these recently used phrases: #{phrases_list}"
+      
+      phrases_data = {
+        instruction: "Avoid using these recently used phrases",
+        phrases: @avoid_phrases.take(10)
+      }
+      
+      <<~AVOID.strip
+        REPETITION AVOIDANCE:
+        ```json
+        #{JSON.pretty_generate(phrases_data)}
+        ```
+      AVOID
     end
 
-    def context_text
-      parts = []
-      parts << "Theme: #{@context[:cluster_name]}" if @context[:cluster_name]
-      parts << "Description: #{@context[:image_description]}" if @context[:image_description]
-      parts.empty? ? '' : parts.join("\n")
+    def length_target_description(length_type)
+      case length_type.to_s
+      when 'short' then '3-4 sentences'
+      when 'medium' then '4-6 sentences'  
+      when 'long' then '6-8 sentences'
+      else '4-6 sentences'
+      end
     end
 
-    def example_captions_text
-      return '' if @config.example_captions.empty?
-      
-      examples = @config.example_captions.take(3).map.with_index do |example, i|
-        "#{i + 1}. #{example}"
-      end.join("\n")
-      
-      "Example captions in the desired style:\n#{examples}"
+    def length_target(length_type)
+      case length_type.to_s
+      when 'short' then 375
+      when 'medium' then 575
+      when 'long' then 850
+      else 575
+      end
     end
   end
 end

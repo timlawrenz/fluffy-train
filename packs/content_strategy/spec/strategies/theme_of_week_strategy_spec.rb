@@ -66,6 +66,37 @@ RSpec.describe ContentStrategy::ThemeOfWeekStrategy do
       end
     end
 
+    context 'when cached cluster is exhausted' do
+      let!(:cluster1) { FactoryBot.create(:cluster, persona: persona, name: 'Exhausted') }
+      let!(:cluster2) { FactoryBot.create(:cluster, persona: persona, name: 'Available') }
+      let!(:photo1) { FactoryBot.create(:photo, cluster: cluster1, persona: persona) }
+      let!(:photo2) { FactoryBot.create(:photo, cluster: cluster2, persona: persona) }
+
+      before do
+        # Set up state with cluster1 cached for current week
+        state = ContentStrategy::StrategyState.find_or_create_by!(persona: persona)
+        state.set_state(:week_number, Time.current.strftime("%Y-W%W"))
+        state.set_state(:cluster_id, cluster1.id)
+        
+        # Mark photo1 as posted
+        FactoryBot.create(:scheduling_post, persona: persona, photo: photo1)
+      end
+
+      it 'selects new cluster when cached one is exhausted' do
+        result = strategy.select_next_photo
+
+        expect(result[:cluster]).to eq(cluster2)
+        expect(result[:photo]).to eq(photo2)
+      end
+
+      it 'updates state to new cluster' do
+        strategy.select_next_photo
+        state = ContentStrategy::StrategyState.find_by(persona: persona)
+
+        expect(state.get_state(:cluster_id)).to eq(cluster2.id)
+      end
+    end
+
     context 'with no clusters' do
       it 'returns error for no clusters' do
         result = strategy.select_next_photo

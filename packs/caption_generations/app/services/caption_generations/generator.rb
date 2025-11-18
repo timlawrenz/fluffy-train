@@ -21,7 +21,7 @@ module CaptionGenerations
       repetition_avoid_list = RepetitionChecker.extract_phrases(recent_captions)
 
       prompt = PromptBuilder.build(
-        config: @persona.caption_config,
+        persona: @persona,
         context: context,
         avoid_phrases: repetition_avoid_list
       )

@@ -1,12 +1,8 @@
-# Caption Generation Capability
+# caption-generation Specification
 
-**Change**: add-persona-caption-generation  
-**Status**: ADDED
-
----
-
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change add-persona-caption-generation. Update Purpose after archive.
+## Requirements
 ### Requirement: Caption Generation
 
 The system SHALL generate Instagram captions that match each persona's configured voice, style, and tone.
@@ -165,8 +161,6 @@ The system SHALL allow humans to review and edit generated captions before posti
 
 ---
 
-## MODIFIED Requirements
-
 ### Requirement: Persona Model Extension
 
 The Persona model SHALL be extended to support caption generation configuration.
@@ -196,46 +190,3 @@ The SchedulingPost model SHALL store caption generation metadata.
 
 ---
 
-## Implementation Notes
-
-### Database Schema Changes
-
-```sql
--- Add to personas table
-ALTER TABLE personas ADD COLUMN caption_config jsonb DEFAULT '{}';
-
--- Add to scheduling_posts table
-ALTER TABLE scheduling_posts ADD COLUMN caption_metadata jsonb DEFAULT '{}';
-CREATE INDEX idx_scheduling_posts_caption_metadata ON scheduling_posts USING gin(caption_metadata);
-```
-
-### Service Architecture
-
-```
-CaptionGenerations::Generator (main entry point)
-  ├── Personas::CaptionConfig (config model)
-  ├── PromptBuilder (builds AI prompts)
-  ├── ContextBuilder (cluster + image context)
-  ├── RepetitionChecker (avoid phrase repetition)
-  ├── OllamaClient (AI generation)
-  ├── PostProcessor (format, validate)
-  └── Result (returned caption with metadata)
-```
-
-### Integration Point
-
-```ruby
-# In content strategy scheduling flow
-caption = CaptionGenerations::Generator.generate(
-  photo: photo,
-  persona: persona,
-  cluster: cluster
-)
-
-Scheduling::SchedulePost.create!(
-  photo: photo,
-  scheduled_at: time,
-  caption: caption.text,
-  caption_metadata: caption.metadata
-)
-```

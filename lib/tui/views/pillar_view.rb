@@ -16,6 +16,7 @@ module TUI
             menu.choice "Edit pillar", :edit_pillar if ContentPillar.where(persona: persona).any?
             menu.choice "Create cluster", :create_cluster
             menu.choice "Edit cluster", :edit_cluster if Clustering::Cluster.where(persona: persona).any?
+            menu.choice "View cluster prompts", :view_prompts if has_clusters_with_prompts?
             menu.choice "Link cluster to pillar", :link_cluster if linkable_items?
             menu.choice "Add photos to cluster", :add_photos if has_clusters?
             menu.choice "Back to main menu", :back
@@ -26,6 +27,7 @@ module TUI
           when :edit_pillar then edit_pillar
           when :create_cluster then create_cluster
           when :edit_cluster then edit_cluster
+          when :view_prompts then view_cluster_prompts
           when :link_cluster then link_cluster
           when :add_photos then add_photos_to_cluster
           when :back then break
@@ -63,7 +65,8 @@ module TUI
               clusters.each do |cluster|
                 photos = cluster.photos.count
                 unposted_cluster = cluster.photos.unposted.count
-                puts "      • #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
+                prompt_indicator = cluster.ai_prompt.present? ? pastel.cyan("🤖") : "  "
+                puts "      #{prompt_indicator} #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
               end
             end
           end
@@ -79,7 +82,8 @@ module TUI
           unlinked.each do |cluster|
             photos = cluster.photos.count
             unposted_cluster = cluster.photos.unposted.count
-            puts "    • #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
+            prompt_indicator = cluster.ai_prompt.present? ? pastel.cyan("🤖") : "  "
+            puts "    #{prompt_indicator} #{cluster.name} (#{photos} photos, #{unposted_cluster} unposted)"
           end
         end
       end
@@ -313,6 +317,64 @@ module TUI
 
       def has_clusters?
         Clustering::Cluster.where(persona: persona).any?
+      end
+
+      def has_clusters_with_prompts?
+        Clustering::Cluster.where(persona: persona).where.not(ai_prompt: nil).where.not(ai_prompt: '').any?
+      end
+
+      def view_cluster_prompts
+        clusters = Clustering::Cluster.where(persona: persona)
+                                      .where.not(ai_prompt: nil)
+                                      .where.not(ai_prompt: '')
+                                      .order(:name)
+        
+        if clusters.empty?
+          puts error("No clusters with AI prompts found")
+          wait_for_key
+          return
+        end
+
+        choices = clusters.map do |c|
+          photos = c.photos.count
+          { name: "#{c.name} (#{photos} photos)", value: c.id }
+        end
+
+        cluster_id = prompt.select("Select cluster to view prompt:", choices, per_page: 15)
+        cluster = clusters.find(cluster_id)
+
+        clear_screen
+        print_header("AI Prompt: #{cluster.name}")
+
+        puts ""
+        puts pastel.bold("Cluster: ") + pastel.cyan(cluster.name)
+        puts pastel.bold("Photos: ") + "#{cluster.photos.count} total, #{cluster.photos.unposted.count} unposted"
+        
+        if cluster.pillars.any?
+          puts pastel.bold("Pillars: ") + cluster.pillars.map(&:name).join(", ")
+        end
+        
+        puts ""
+        puts pastel.bold.cyan("━" * terminal_width)
+        puts pastel.bold(" AI Generation Prompt")
+        puts pastel.bold.cyan("━" * terminal_width)
+        puts ""
+        
+        # Word wrap the prompt
+        wrapped_prompt = cluster.ai_prompt.gsub(/(.{1,#{terminal_width - 4}})(\s+|$)/, "\\1\n")
+        puts wrapped_prompt
+        
+        puts ""
+        puts pastel.bold.cyan("━" * terminal_width)
+        puts ""
+        puts pastel.dim("💡 Use this prompt with ComfyUI/Stable Diffusion to generate matching images")
+        puts ""
+
+        wait_for_key
+      end
+
+      def terminal_width
+        TTY::Screen.width.clamp(80, 120)
       end
     end
   end

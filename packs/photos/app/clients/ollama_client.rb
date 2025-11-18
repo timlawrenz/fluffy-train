@@ -60,6 +60,8 @@ class OllamaClient
     Faraday.new(url: @base_url) do |conn|
       conn.request :json
       conn.response :json
+      conn.options.timeout = 180  # 3 minute timeout for image analysis
+      conn.options.open_timeout = 30
       conn.adapter Faraday.default_adapter
     end
   end

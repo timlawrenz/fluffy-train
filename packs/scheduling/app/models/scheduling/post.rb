@@ -24,7 +24,7 @@ module Scheduling
       end
 
       event :start_posting do
-        transition draft: :posting
+        transition [:draft, :scheduled] => :posting
       end
 
       event :mark_as_posted do

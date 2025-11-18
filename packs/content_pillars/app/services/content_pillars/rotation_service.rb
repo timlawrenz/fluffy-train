@@ -30,6 +30,10 @@ module ContentPillars
     private
 
     def calculate_deficit_score(pillar)
+      # Check if pillar has available photos first
+      available_photos = count_available_photos(pillar)
+      return -1000 if available_photos == 0
+      
       # Get total posts and pillar's posts
       total_posts = recent_post_count
       return pillar.weight if total_posts == 0 # No posts yet, use weight
@@ -42,12 +46,6 @@ module ContentPillars
       
       # Deficit = how far below target (positive = behind, negative = ahead)
       deficit = target_percentage - actual_percentage
-      
-      # Boost score if pillar has available photos
-      available_photos = count_available_photos(pillar)
-      
-      # Penalize if no photos available
-      return -1000 if available_photos == 0
       
       # Return deficit score (higher = more behind target)
       deficit

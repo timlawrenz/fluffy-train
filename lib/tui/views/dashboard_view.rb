@@ -18,19 +18,39 @@ module TUI
       private
 
       def show_scheduled_posts
-        posts = Scheduling::Post.where(persona: persona, status: ['scheduled', 'pending']).order(:scheduled_at)
         now = Time.current
-
-        overdue = posts.where('scheduled_at < ?', now)
-        upcoming = posts.where('scheduled_at >= ?', now).limit(5)
+        
+        # Get posts from both scheduling methods:
+        # 1. Draft posts with optimal_time_calculated (from rake task scheduling:create_scheduled_post)
+        # 2. Scheduled status posts with scheduled_at (from TUI schedule view)
+        draft_posts = Scheduling::Post.where(persona: persona, status: 'draft')
+                                      .where.not(optimal_time_calculated: nil)
+        scheduled_posts = Scheduling::Post.where(persona: persona, status: 'scheduled')
+                                          .where.not(scheduled_at: nil)
+        
+        # Combine and sort by time
+        all_posts = (draft_posts.to_a + scheduled_posts.to_a).sort_by do |post|
+          post.optimal_time_calculated || post.scheduled_at
+        end
+        
+        overdue = all_posts.select do |post|
+          time = post.optimal_time_calculated || post.scheduled_at
+          time < now
+        end
+        
+        upcoming = all_posts.select do |post|
+          time = post.optimal_time_calculated || post.scheduled_at
+          time >= now
+        end.take(5)
 
         puts section_header("SCHEDULED POSTS")
 
         if overdue.any?
           puts error("#{overdue.count} overdue posts need attention")
-          overdue.limit(3).each do |post|
-            days = ((now - post.scheduled_at) / 1.day).to_i
-            puts "  #{pastel.red('▶')} #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
+          overdue.take(3).each do |post|
+            time = post.optimal_time_calculated || post.scheduled_at
+            days = ((now - time) / 1.day).to_i
+            puts "  #{pastel.red('▶')} #{time.strftime('%m/%d %H:%M')} " +
                  pastel.dim("(#{days}d ago)") + " - #{truncate(post.caption || 'No caption', 50)}"
           end
           puts pastel.dim("  ... and #{overdue.count - 3} more") if overdue.count > 3
@@ -42,8 +62,9 @@ module TUI
         if upcoming.any?
           puts info("#{upcoming.count} upcoming posts scheduled")
           upcoming.each do |post|
-            days = ((post.scheduled_at - now) / 1.day).to_i
-            puts "  #{pastel.green('▶')} #{post.scheduled_at.strftime('%m/%d %H:%M')} " +
+            time = post.optimal_time_calculated || post.scheduled_at
+            days = ((time - now) / 1.day).to_i
+            puts "  #{pastel.green('▶')} #{time.strftime('%m/%d %H:%M')} " +
                  pastel.dim("(in #{days}d)") + " - #{truncate(post.caption || 'No caption', 50)}"
           end
         else
@@ -123,9 +144,16 @@ module TUI
 
         actions = []
 
-        # Check for overdue cleanup
-        overdue_count = Scheduling::Post.where(persona: persona).where('scheduled_at < ? AND status IN (?)',
-                                            Time.current, ['scheduled', 'pending']).count
+        # Check for overdue cleanup - count both types
+        now = Time.current
+        draft_overdue = Scheduling::Post.where(persona: persona, status: 'draft')
+                                        .where.not(optimal_time_calculated: nil)
+                                        .where('optimal_time_calculated < ?', now).count
+        scheduled_overdue = Scheduling::Post.where(persona: persona, status: 'scheduled')
+                                            .where.not(scheduled_at: nil)
+                                            .where('scheduled_at < ?', now).count
+        overdue_count = draft_overdue + scheduled_overdue
+        
         if overdue_count > 0
           actions << {
             priority: 1,
@@ -156,9 +184,15 @@ module TUI
           }
         end
 
-        # Check for pending publishes
-        pending = Scheduling::Post.where(persona: persona, status: 'scheduled').
-                         where('scheduled_at <= ?', Time.current + 1.hour).count
+        # Check for pending publishes - count both types
+        draft_pending = Scheduling::Post.where(persona: persona, status: 'draft')
+                         .where.not(optimal_time_calculated: nil)
+                         .where('optimal_time_calculated <= ?', Time.current + 1.hour).count
+        scheduled_pending = Scheduling::Post.where(persona: persona, status: 'scheduled')
+                           .where.not(scheduled_at: nil)
+                           .where('scheduled_at <= ?', Time.current + 1.hour).count
+        pending = draft_pending + scheduled_pending
+        
         if pending > 0
           actions << {
             priority: 2,

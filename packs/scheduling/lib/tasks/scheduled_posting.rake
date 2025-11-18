@@ -9,43 +9,61 @@ namespace :scheduling do
     puts "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     puts ""
 
-    # Find posts that:
-    # 1. Are in 'draft' status (scheduled but not posted yet)
-    # 2. Have an optimal_time_calculated
-    # 3. optimal_time is within the last hour (in case we missed it)
-    one_hour_ago = 1.hour.ago
+    # Find posts that are ready to be published:
+    # 1. Draft posts with optimal_time_calculated (from rake task)
+    # 2. Scheduled posts with scheduled_at (from TUI)
     now = Time.current
 
-    scheduled_posts = Scheduling::Post
+    draft_posts = Scheduling::Post
       .where(status: 'draft')
       .where.not(optimal_time_calculated: nil)
       .where('optimal_time_calculated <= ?', now)
-      .where('optimal_time_calculated >= ?', one_hour_ago)
-      .order(:optimal_time_calculated)
+    
+    scheduled_status_posts = Scheduling::Post
+      .where(status: 'scheduled')
+      .where.not(scheduled_at: nil)
+      .where('scheduled_at <= ?', now)
 
-    if scheduled_posts.empty?
+    # Combine and sort by time
+    all_posts = (draft_posts.to_a + scheduled_status_posts.to_a).sort_by do |post|
+      post.optimal_time_calculated || post.scheduled_at
+    end
+
+    if all_posts.empty?
       puts "No posts scheduled for posting at this time."
       puts ""
       
-      # Show next scheduled post
-      next_post = Scheduling::Post
+      # Show next scheduled post from either type
+      next_draft = Scheduling::Post
         .where(status: 'draft')
         .where.not(optimal_time_calculated: nil)
         .where('optimal_time_calculated > ?', now)
         .order(:optimal_time_calculated)
         .first
+        
+      next_scheduled = Scheduling::Post
+        .where(status: 'scheduled')
+        .where.not(scheduled_at: nil)
+        .where('scheduled_at > ?', now)
+        .order(:scheduled_at)
+        .first
+
+      next_posts = [next_draft, next_scheduled].compact
+      next_post = next_posts.min_by { |p| p.optimal_time_calculated || p.scheduled_at }
 
       if next_post
-        time_until = ((next_post.optimal_time_calculated - now) / 3600).round(1)
+        scheduled_time = next_post.optimal_time_calculated || next_post.scheduled_at
+        time_until = ((scheduled_time - now) / 3600).round(1)
         puts "Next scheduled post:"
         puts "  Photo: #{next_post.photo.path}"
-        puts "  Scheduled: #{next_post.optimal_time_calculated.strftime('%Y-%m-%d %H:%M %Z')}"
+        puts "  Scheduled: #{scheduled_time.strftime('%Y-%m-%d %H:%M %Z')}"
         puts "  Time until: #{time_until} hours"
       else
         puts "No posts scheduled."
         puts ""
         puts "💡 Tip: Create scheduled posts with:"
         puts "   bundle exec rails scheduling:create_scheduled_post[sarah]"
+        puts "   Or use the TUI: bin/fluffy-tui [persona]"
       end
       
       puts ""
@@ -53,17 +71,21 @@ namespace :scheduling do
       exit 0
     end
 
-    puts "Found #{scheduled_posts.count} post(s) ready to publish:"
+    puts "Found #{all_posts.count} post(s) ready to publish:"
     puts ""
 
-    scheduled_posts.each do |post|
+    all_posts.each do |post|
+      scheduled_time = post.optimal_time_calculated || post.scheduled_at
       puts "📸 Post ID: #{post.id}"
       puts "   Photo: #{File.basename(post.photo.path)}"
       puts "   Cluster: #{post.cluster&.name || 'None'}"
-      puts "   Scheduled: #{post.optimal_time_calculated.strftime('%Y-%m-%d %H:%M %Z')}"
+      puts "   Scheduled: #{scheduled_time.strftime('%Y-%m-%d %H:%M %Z')}"
       puts ""
 
       begin
+        # Transition to posting state
+        post.start_posting!
+        
         # Generate public URL for the photo
         public_url_result = Scheduling::Commands::GeneratePublicPhotoUrl.call!(photo: post.photo)
         
@@ -108,7 +130,7 @@ namespace :scheduling do
           Rails.logger.error("URL generation failed for post #{post.id}: #{public_url_result.errors}")
         end
       rescue StandardError => e
-        post.mark_as_failed!
+        post.mark_as_failed! if post.status != 'draft'
         puts "   ❌ Error: #{e.message}"
         Rails.logger.error("Scheduled posting error for post #{post.id}: #{e.message}")
         Rails.logger.error(e.backtrace.join("\n"))
