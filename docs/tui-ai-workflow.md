@@ -21,7 +21,11 @@ bin/fluffy-tui sarah
 → Generate cluster suggestions for a pillar
 ```
 
-AI (Ollama + Gemma 3) generates:
+The system analyzes your content strategy to:
+- **Recommend** the pillar with the biggest content gap (highlighted)
+- Show **unposted photo counts** for each pillar to identify needs
+
+AI (Gemini 2.5 Pro) generates:
 - Cluster names (based on scene descriptions)
 - Full image generation prompts with scene, outfit, and mood details
 - Automatically creates clusters linked to selected pillar
