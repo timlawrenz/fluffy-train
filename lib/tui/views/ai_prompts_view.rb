@@ -45,14 +45,34 @@ module TUI
           puts "Create pillars first in Pillars & Clusters menu."
           return
         end
+
+        # Analyze gaps to find recommended pillar
+        analyzer = ContentPillars::GapAnalyzer.new(persona: @persona)
+        gaps = analyzer.analyze(days_ahead: 30)
+        recommended_pillar_gap = gaps.first
+        recommended_pillar_id = recommended_pillar_gap ? recommended_pillar_gap[:pillar].id : nil
         
         pillar_choices = pillars.map do |p|
           clusters = Clustering::Cluster.joins(:pillar_cluster_assignments).where(pillar_cluster_assignments: { pillar_id: p.id }).count
-          photos = Photo.joins(:cluster).joins("INNER JOIN pillar_cluster_assignments ON pillar_cluster_assignments.cluster_id = clusters.id").where(pillar_cluster_assignments: { pillar_id: p.id }).count
-          ["#{p.name} (#{clusters} clusters, #{photos} photos)", p.id]
+          
+          # Calculate unposted photos
+          # Get all photo IDs in this pillar
+          photo_ids = Photo.joins(:cluster)
+                          .joins("INNER JOIN pillar_cluster_assignments ON pillar_cluster_assignments.cluster_id = clusters.id")
+                          .where(pillar_cluster_assignments: { pillar_id: p.id })
+                          .pluck(:id)
+          
+          unposted_count = Photo.where(id: photo_ids).unposted.count
+          
+          label = "#{p.name} (#{clusters} clusters, #{unposted_count} unposted)"
+          if p.id == recommended_pillar_id
+            label = "#{label} #{pastel.green('★ Recommended')}"
+          end
+          
+          [label, p.id]
         end.to_h
         
-        pillar_id = prompt.select("Select pillar:", pillar_choices)
+        pillar_id = prompt.select("Select pillar:", pillar_choices, default: recommended_pillar_id)
         pillar = pillars.find(pillar_id)
         
         count = prompt.ask("How many prompts to generate?", default: 3, convert: :int)
